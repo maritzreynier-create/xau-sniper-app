@@ -154,8 +154,29 @@ function money(v){ return "$"+Number(v||0).toFixed(2); }
 function pnl(t){ const risk=Number(t.riskAmount||0), rr=parseRR(t.rr); if(t.result==="Win") return risk*rr; if(t.result==="Loss") return -risk; return 0; }
 function sessionFromTime(time){ if(!time) return "Unknown"; const h=Number(String(time).split(":")[0]); if(h>=2&&h<10) return "Asia"; if(h>=10&&h<14) return "London"; if(h>=14&&h<17) return "NY Killzone"; if(h>=17&&h<22) return "NY"; return "Off Hours"; }
 function weekdayName(date){ const d=new Date(date); return Number.isNaN(d.getTime())?"Unknown":weekDays[d.getDay()]; }
-function historyData(){ try{return JSON.parse(localStorage.getItem(storageKey)||"[]")}catch{return []} }
-function saveHistory(items){ localStorage.setItem(storageKey, JSON.stringify(items)); }
+async function loadTrades() {
+  const { data, error } = await supabaseClient
+    .from('trades')
+    .select('*')
+    .order('id', { ascending: false });
+
+  if (error) {
+    console.error('Load error:', error);
+    return [];
+  }
+
+  return data || [];
+}
+
+async function saveTradeToCloud(trade) {
+  const { error } = await supabaseClient
+    .from('trades')
+    .insert([trade]);
+
+  if (error) {
+    console.error('Save error:', error);
+  }
+}
 
 function renderPills(targetId, options, activeValue, onClick){
   const el=$(targetId); el.innerHTML="";
@@ -249,6 +270,12 @@ $("saveBtn").onclick=()=>{
 $("exportBtn").onclick=()=>{ const blob=new Blob([JSON.stringify(historyData(),null,2)],{type:"application/json"}); const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download="xauusd-sniper-backup.json"; a.click(); };
 
 renderAll();
+</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+<script>
+const SUPABASE_URL = jreasuuibdkescqsmabu;
+const SUPABASE_KEY = sb_publishable_ihBmxcaFvdGimh2R5VsuzA_w6SflTxU;
+const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 </script>
 </body>
 </html>
