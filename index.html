@@ -547,8 +547,22 @@ $("saveBtn").onclick = async () => {
     weekday: weekdayName($("date").value)
   };
 
-  await saveTradeToCloud(trade);
-  renderAll();
+  // Reset inputs after save
+$("entry").value = "";
+$("sl").value = "";
+$("tp").value = "";
+$("rr").value = "1:3";
+$("newsEvent").value = "";
+$("newsNotes").value = "";
+$("reviewNotes").value = "";
+$("time").value = "";
+
+// Reset state selections
+state.bias = "Wait";
+state.setup = setupOptions[0];
+state.emotion = "Focused";
+state.newsOutcome = "Neutral";
+state.checklist = Object.fromEntries(checklistItems.map(x => [x, false]));
 };
 
 $("exportBtn").onclick = async () => {
