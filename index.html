@@ -7,6 +7,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>SteadyMind Journal</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     :root{
       --bg:#020617;
@@ -174,6 +175,11 @@
       background:linear-gradient(90deg,var(--green),transparent);
       margin:10px 0 18px;
     }
+    .chart-wrap{
+      position:relative;
+      height:240px;
+      width:100%;
+    }
   </style>
 </head>
 <body>
@@ -188,6 +194,14 @@
     <div class="card"><div class="label">Profit Factor</div><div class="value" id="profitFactor">0.00</div></div>
     <div class="card"><div class="label">Avg Win</div><div class="value" id="avgWin">$0.00</div></div>
     <div class="card"><div class="label">Avg Loss</div><div class="value" id="avgLoss">$0.00</div></div>
+  </div>
+
+  <div class="card">
+    <div class="section-title">Equity Curve</div>
+    <p class="section-sub">Track cumulative performance over time.</p>
+    <div class="chart-wrap">
+      <canvas id="equityChart"></canvas>
+    </div>
   </div>
 
   <div class="card">
@@ -371,6 +385,7 @@ const state = {
 };
 
 const $ = id => document.getElementById(id);
+let equityChart = null;
 
 function parseRR(rr){
   if(!rr) return 0;
@@ -408,6 +423,67 @@ function sessionFromTime(time){
 function weekdayName(date){
   const d = new Date(date);
   return Number.isNaN(d.getTime()) ? "Unknown" : weekDays[d.getDay()];
+}
+
+function buildEquitySeries(hist) {
+  const ordered = [...hist]
+    .filter(t => t.result !== "No Trade")
+    .sort((a,b) => String(a.date || "").localeCompare(String(b.date || "")));
+
+  let running = 0;
+  return ordered.map((t, index) => {
+    running += pnl(t);
+    return {
+      label: t.date || `Trade ${index + 1}`,
+      equity: Number(running.toFixed(2))
+    };
+  });
+}
+
+function renderEquityChart(hist) {
+  const series = buildEquitySeries(hist);
+  const ctx = document.getElementById("equityChart").getContext("2d");
+
+  if (equityChart) {
+    equityChart.destroy();
+  }
+
+  equityChart = new Chart(ctx, {
+    type: "line",
+    data: {
+      labels: series.map(x => x.label),
+      datasets: [{
+        label: "Equity",
+        data: series.map(x => x.equity),
+        borderColor: "#22c55e",
+        backgroundColor: "rgba(34,197,94,0.15)",
+        fill: true,
+        tension: 0.35,
+        pointRadius: 3,
+        pointHoverRadius: 4
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false }
+      },
+      scales: {
+        x: {
+          ticks: { color: "#94a3b8" },
+          grid: { color: "rgba(148,163,184,0.08)" }
+        },
+        y: {
+          ticks: {
+            color: "#94a3b8",
+            callback: function(value) { return "$" + value; }
+          },
+          grid: { color: "rgba(148,163,184,0.08)" }
+        }
+      }
+    }
+  });
 }
 
 async function loadTrades() {
@@ -572,6 +648,7 @@ async function renderAll(){
   renderPills("emotionPills", emotions, state.emotion, v => state.emotion = v);
   renderPills("newsOutcomePills", newsOutcomes, state.newsOutcome, v => state.newsOutcome = v);
   renderChecklist();
+  renderEquityChart(hist);
 
   const trades = hist.filter(t => t.result !== "No Trade");
   const wins = trades.filter(t => t.result === "Win");
