@@ -448,6 +448,24 @@
       <canvas id="equityChart"></canvas>
     </div>
   </div>  <div class="card">
+    <div class="section-title">Filters</div>
+    <p class="section-sub">Focus the dashboard by setup, session, or result.</p>
+    <div class="row3">
+      <div>
+        <label class="label" for="filterSetup">Setup</label>
+        <select id="filterSetup"></select>
+      </div>
+      <div>
+        <label class="label" for="filterSession">Session</label>
+        <select id="filterSession"></select>
+      </div>
+      <div>
+        <label class="label" for="filterResult">Result</label>
+        <select id="filterResult"></select>
+      </div>
+    </div>
+    <button id="clearFiltersBtn" class="btn secondary" style="margin-top:12px" type="button">Clear Filters</button>
+  </div>  <div class="card">
     <div class="section-title">Trade Input</div>
     <p class="section-sub">Fast journaling with clean execution tracking.</p><div class="row">
   <div>
@@ -621,8 +639,30 @@
     </div>
     <div class="bars" id="hourBars" style="margin-top:10px"></div>
   </div>  <div class="card">
+    <div class="section-title">Insights</div>
+    <p class="section-sub">Patterns pulled from your saved data.</p>
+    <div class="grid2">
+      <div class="daytile"><div class="small">Best Setup</div><div id="bestSetupInsight" style="font-weight:700;font-size:18px">—</div></div>
+      <div class="daytile"><div class="small">Worst Setup</div><div id="worstSetupInsight" style="font-weight:700;font-size:18px">—</div></div>
+    </div>
+    <div class="grid2" style="margin-top:12px">
+      <div class="daytile"><div class="small">Discipline Edge</div><div id="disciplineInsight" style="font-weight:700;font-size:18px">—</div></div>
+      <div class="daytile"><div class="small">Session Insight</div><div id="sessionInsight" style="font-weight:700;font-size:18px">—</div></div>
+    </div>
+    <div id="insightsList" class="calendar-summary" style="margin-top:12px"></div>
+  </div>  <div class="card">
     <div class="section-title">Monthly Calendar</div>
     <p class="section-sub">FTMO-style month view with daily P&amp;L and trade count.</p>
+    <div class="grid3" style="margin-bottom:12px">
+      <div class="daytile"><div class="small">Month P&amp;L</div><div id="monthPnl" style="font-weight:700;font-size:20px">—</div></div>
+      <div class="daytile"><div class="small">Trades</div><div id="monthTrades" style="font-weight:700;font-size:20px">—</div></div>
+      <div class="daytile"><div class="small">Win Rate</div><div id="monthWinRate" style="font-weight:700;font-size:20px">—</div></div>
+    </div>
+    <div class="grid3" style="margin-bottom:12px">
+      <div class="daytile"><div class="small">Avg Discipline</div><div id="monthDiscipline" style="font-weight:700;font-size:20px">—</div></div>
+      <div class="daytile"><div class="small">Best Day</div><div id="monthBestDay" style="font-weight:700;font-size:16px">—</div></div>
+      <div class="daytile"><div class="small">Worst Day</div><div id="monthWorstDay" style="font-weight:700;font-size:16px">—</div></div>
+    </div>
     <div class="calendar-toolbar">
       <button id="prevMonthBtn" class="btn secondary small" type="button">← Prev</button>
       <div id="calendarMonthLabel" class="calendar-month-label">Month Year</div>
@@ -692,7 +732,12 @@ const state = {
   edgeLock: true,
   checklist: Object.fromEntries(checklistItems.map(x => [x, false])),
   calendarDate: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
-  selectedCalendarDay: new Date().toISOString().slice(0,10)
+  selectedCalendarDay: new Date().toISOString().slice(0,10),
+  filters: {
+    setup: "All",
+    session: "All",
+    result: "All"
+  }
 };
 
 const $ = id => document.getElementById(id);
@@ -1199,6 +1244,69 @@ function calculateSharpe(hist) {
   return (mean / std) * Math.sqrt(returns.length);
 }
 
+function getSetupStats(hist){
+  const grouped = {};
+  hist.filter(t => t.result !== "No Trade" && t.setup).forEach(t => {
+    if(!grouped[t.setup]) grouped[t.setup] = {name:t.setup, trades:0, wins:0, net:0};
+    grouped[t.setup].trades += 1;
+    if(t.result === "Win") grouped[t.setup].wins += 1;
+    grouped[t.setup].net += pnl(t);
+  });
+  return Object.values(grouped)
+    .map(x => ({...x, winRate: x.trades ? (x.wins / x.trades) * 100 : 0}))
+    .filter(x => x.trades >= 2);
+}
+
+function getSessionStats(hist){
+  const grouped = {};
+  hist.filter(t => t.result !== "No Trade" && t.session).forEach(t => {
+    if(!grouped[t.session]) grouped[t.session] = {session:t.session, trades:0, net:0};
+    grouped[t.session].trades += 1;
+    grouped[t.session].net += pnl(t);
+  });
+  return Object.values(grouped).filter(x => x.trades >= 2);
+}
+
+function getDisciplineEdgeInsight(hist){
+  const valid = hist.filter(t => t.result !== "No Trade" && t.disciplineScore != null);
+  if(valid.length < 3) return "Not enough data";
+
+  const high = valid.filter(t => Number(t.disciplineScore) >= 8);
+  const low = valid.filter(t => Number(t.disciplineScore) < 6);
+
+  const highAvg = high.length ? high.reduce((s,t)=>s+pnl(t),0) / high.length : 0;
+  const lowAvg = low.length ? low.reduce((s,t)=>s+pnl(t),0) / low.length : 0;
+
+  if(!high.length || !low.length) return "Build more discipline history";
+  return highAvg >= lowAvg
+    ? `High-discipline trades average ${money(highAvg)} vs ${money(lowAvg)} below 6`
+    : `Low-discipline trades currently outperform high-discipline trades`;
+}
+
+function renderInsights(hist){
+  const setupStats = getSetupStats(hist).sort((a,b) => b.net - a.net);
+  const bestSetup = setupStats[0] || null;
+  const worstSetup = [...setupStats].sort((a,b) => a.net - b.net)[0] || null;
+  const bestSession = getSessionStats(hist).sort((a,b) => b.net - a.net)[0] || null;
+  const disciplineText = getDisciplineEdgeInsight(hist);
+
+  $("bestSetupInsight").textContent = bestSetup ? `${bestSetup.name} (${money(bestSetup.net)})` : "Not enough data";
+  $("worstSetupInsight").textContent = worstSetup ? `${worstSetup.name} (${money(worstSetup.net)})` : "Not enough data";
+  $("disciplineInsight").textContent = disciplineText;
+  $("sessionInsight").textContent = bestSession ? `${bestSession.session} leads with ${money(bestSession.net)}` : "Not enough data";
+
+  const insightLines = [];
+  if(bestSetup) insightLines.push(`• Best setup so far: ${bestSetup.name} with ${bestSetup.trades} trades and ${Math.round(bestSetup.winRate)}% win rate.`);
+  if(worstSetup) insightLines.push(`• Weakest setup so far: ${worstSetup.name} with net ${money(worstSetup.net)}.`);
+  if(bestSession) insightLines.push(`• Best session so far: ${bestSession.session} with ${bestSession.trades} trades logged.`);
+  insightLines.push(`• ${disciplineText}.`);
+
+  $("insightsList").innerHTML = `
+    <div style="font-weight:700;margin-bottom:6px">Performance Signals</div>
+    <div class="small">${insightLines.length ? insightLines.join("<br>") : "Add more trades to unlock insights."}</div>
+  `;
+}
+
 function buildCalendarDays(hist) {
   const grouped = {};
   hist.forEach(t => {
@@ -1231,6 +1339,38 @@ function getMonthMatrix(dateObj) {
   }
   while (cells.length % 7 !== 0) cells.push(null);
   return cells;
+}
+
+function getMonthTrades(hist, dateObj){
+  const year = dateObj.getFullYear();
+  const month = String(dateObj.getMonth() + 1).padStart(2, "0");
+  const prefix = `${year}-${month}`;
+  return hist.filter(t => String(t.date || "").startsWith(prefix));
+}
+
+function renderMonthSummary(hist){
+  const monthTrades = getMonthTrades(hist, state.calendarDate).filter(t => t.result !== "No Trade");
+
+  const monthPnlValue = monthTrades.reduce((s,t) => s + pnl(t), 0);
+  const wins = monthTrades.filter(t => t.result === "Win").length;
+  const winRate = monthTrades.length ? Math.round((wins / monthTrades.length) * 100) : 0;
+  const disciplineTrades = monthTrades.filter(t => t.disciplineScore != null);
+  const avgDiscipline = disciplineTrades.length
+    ? disciplineTrades.reduce((s,t) => s + Number(t.disciplineScore || 0), 0) / disciplineTrades.length
+    : 0;
+
+  const groupedDays = buildCalendarDays(monthTrades);
+  const dayEntries = Object.entries(groupedDays).map(([date, data]) => ({ date, pnl: data.pnl }));
+  const bestDay = dayEntries.length ? [...dayEntries].sort((a,b) => b.pnl - a.pnl)[0] : null;
+  const worstDay = dayEntries.length ? [...dayEntries].sort((a,b) => a.pnl - b.pnl)[0] : null;
+
+  $("monthPnl").textContent = money(monthPnlValue);
+  $("monthPnl").className = monthPnlValue > 0 ? "discipline-good" : monthPnlValue < 0 ? "discipline-bad" : "";
+  $("monthTrades").textContent = String(monthTrades.length);
+  $("monthWinRate").textContent = `${winRate}%`;
+  $("monthDiscipline").textContent = avgDiscipline ? avgDiscipline.toFixed(1) : "—";
+  $("monthBestDay").textContent = bestDay ? `${bestDay.date.slice(8)} • ${money(bestDay.pnl)}` : "—";
+  $("monthWorstDay").textContent = worstDay ? `${worstDay.date.slice(8)} • ${money(worstDay.pnl)}` : "—";
 }
 
 function renderCalendarSummary(dayKey, dayData) {
@@ -1306,6 +1446,30 @@ function renderCalendar(hist) {
   renderCalendarSummary(state.selectedCalendarDay, grouped[state.selectedCalendarDay] || null);
 }
 
+function populateFilters(hist){
+  const setups = ["All", ...new Set(hist.map(t => t.setup).filter(Boolean))];
+  const sessions = ["All", ...new Set(hist.map(t => t.session).filter(Boolean))];
+  const results = ["All", ...new Set(hist.map(t => t.result).filter(Boolean))];
+
+  const setOptions = (id, values, selected) => {
+    $(id).innerHTML = values.map(v => `<option value="${v}">${v}</option>`).join("");
+    $(id).value = values.includes(selected) ? selected : "All";
+  };
+
+  setOptions("filterSetup", setups, state.filters.setup);
+  setOptions("filterSession", sessions, state.filters.session);
+  setOptions("filterResult", results, state.filters.result);
+}
+
+function applyFilters(hist){
+  return hist.filter(t => {
+    const setupMatch = state.filters.setup === "All" || t.setup === state.filters.setup;
+    const sessionMatch = state.filters.session === "All" || t.session === state.filters.session;
+    const resultMatch = state.filters.result === "All" || t.result === state.filters.result;
+    return setupMatch && sessionMatch && resultMatch;
+  });
+}
+
 function hydrateAccountDefaults() {
   if (!currentAccount) return;
 
@@ -1341,7 +1505,9 @@ function renderAll(){
   currentAccount = accountsCache.find(x => x.id === currentAccountId) || null;
   renderAccountMeta();
 
-  const hist = tradesCache;
+  const baseHist = tradesCache;
+  populateFilters(baseHist);
+  const hist = applyFilters(baseHist);
 
   $("date").value ||= new Date().toISOString().slice(0,10);
   $("riskAmount").value = ((Number($("accountSize").value || 0) * Number($("riskPercent").value || 0)) / 100).toFixed(2);
@@ -1426,7 +1592,9 @@ function renderAll(){
     `).join("")
     : `<div class="muted">Add timed trades to unlock this section.</div>`;
 
+  renderMonthSummary(hist);
   renderCalendar(hist);
+  renderInsights(hist);
 
   $("history").innerHTML = hist.length
     ? hist.slice(0,10).map(t => `
@@ -1460,6 +1628,22 @@ $("date").value = new Date().toISOString().slice(0,10);
     renderAll();
   });
 });
+
+["filterSetup","filterSession","filterResult"].forEach(id => {
+  $(id).addEventListener("change", () => {
+    if(id === "filterSetup") state.filters.setup = $(id).value;
+    if(id === "filterSession") state.filters.session = $(id).value;
+    if(id === "filterResult") state.filters.result = $(id).value;
+    renderAll();
+  });
+});
+
+$("clearFiltersBtn").onclick = () => {
+  state.filters.setup = "All";
+  state.filters.session = "All";
+  state.filters.result = "All";
+  renderAll();
+};
 
 $("edgeLockBtn").onclick = () => {
   state.edgeLock = !state.edgeLock;
@@ -1540,7 +1724,7 @@ $("saveBtn").onclick = async () => {
 };
 
 $("exportBtn").onclick = async () => {
-  const trades = tradesCache;
+  const trades = applyFilters(tradesCache);
   const blob = new Blob([JSON.stringify(trades, null, 2)], { type: "application/json" });
   const a = document.createElement("a");
   a.href = URL.createObjectURL(blob);
@@ -1573,14 +1757,3 @@ async function initApp() {
 initApp();
 </script></body>
 </html>
-
-
-  
-
-
-
-
-
-
-
-
