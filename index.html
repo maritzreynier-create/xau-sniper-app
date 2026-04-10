@@ -358,13 +358,21 @@
 
     <div class="row" style="margin-top:12px">
       <div>
+        <label class="label" for="lotSize">Lot Size</label>
+        <input id="lotSize" type="number" step="0.01" placeholder="0.50">
+      </div>
+      <div>
         <label class="label" for="sl">SL</label>
         <input id="sl" type="number" step="0.01">
       </div>
+    </div>
+
+    <div class="row" style="margin-top:12px">
       <div>
         <label class="label" for="tp">TP</label>
         <input id="tp" type="number" step="0.01">
       </div>
+      <div></div>
     </div>
   </div>
 
@@ -523,7 +531,15 @@ const ACCOUNTS_TABLE = "accounts";
 
 const biasOptions = ["Buy","Sell","Wait"];
 const resultOptions = ["Win","Loss","BE","No Trade"];
-const setupOptions = ["Sweep → Break → Pullback","Asia sweep reversal","London continuation","NY breakout continuation","Range liquidity sweep"];
+const setupOptions = [
+  "Sweep → Break → Pullback",
+  "Session sweep reversal",
+  "Breakout pullback continuation",
+  "Range breakout retest",
+  "Liquidity grab + expansion",
+  "Support/resistance rejection",
+  "Trend pullback continuation"
+];
 const emotions = ["Calm","Focused","Confident","Hesitant","Fearful","Greedy","Frustrated"];
 const newsOutcomes = ["Bullish","Bearish","Neutral"];
 const checklistItems = ["HTF bias aligned","Liquidity sweep taken","Clear displacement candle","Structure break confirmed","Pullback into entry zone","News safe","Risk within plan"];
@@ -1007,6 +1023,7 @@ function hydrateAccountDefaults() {
 
 function resetTradeForm() {
   $("entry").value = "";
+  $("lotSize").value = "";
   $("sl").value = "";
   $("tp").value = "";
   $("rr").value = "1:3";
@@ -1132,6 +1149,7 @@ function renderAll(){
         <div class="topline">
           <div>
             <div style="font-weight:700">${t.date || "—"} • ${t.pair || "—"} • ${t.setup || "—"}</div>
+            <div class="small">Lot Size: ${t.lotSize ?? "—"}</div>
             <div class="small">${t.result || "—"} • ${t.rr || "—"} • ${money(pnl(t))}</div>
             <div class="small">${t.time || "—"} • ${t.session || "Unknown"} • ${t.weekday || "Unknown"}</div>
             <div class="small">Discipline: ${t.disciplineScore ?? "—"}/10 • Followed Plan: ${t.followedPlan || "—"}</div>
@@ -1204,6 +1222,7 @@ $("saveBtn").onclick = async () => {
     setup: state.setup,
     bias: state.bias,
     entry: $("entry").value ? Number($("entry").value) : null,
+    lotSize: $("lotSize").value ? Number($("lotSize").value) : null,
     sl: $("sl").value ? Number($("sl").value) : null,
     tp: $("tp").value ? Number($("tp").value) : null,
     accountSize: $("accountSize").value ? Number($("accountSize").value) : null,
