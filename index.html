@@ -158,12 +158,17 @@
     .barlabel{display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px;color:var(--muted)}
     .barbg{background:#1f2937;border-radius:999px;height:12px;overflow:hidden}
     .barfill{background:linear-gradient(90deg,var(--green),#16a34a);height:100%}
-    .calendar{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+    .calendar{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:8px;
+    }
     .daytile{
       border:1px solid var(--border);
       border-radius:18px;
       padding:10px;
       background:var(--panel-2);
+      min-height:92px;
     }
     .neg{
       background:rgba(239,68,68,.12);
@@ -273,6 +278,11 @@
   <div class="grid2">
     <div class="card"><div class="label">Avg Win</div><div class="value" id="avgWin">$0.00</div></div>
     <div class="card"><div class="label">Avg Loss</div><div class="value" id="avgLoss">$0.00</div></div>
+  </div>
+
+  <div class="grid2">
+    <div class="card"><div class="label">Average RRR</div><div class="value-small" id="avgRRR">0.00R</div></div>
+    <div class="card"><div class="label">Sharpe Ratio</div><div class="value-small" id="sharpeRatio">0.00</div></div>
   </div>
 
   <div class="card">
@@ -465,8 +475,8 @@
   </div>
 
   <div class="card">
-    <div class="section-title">P&L Calendar</div>
-    <p class="section-sub">Daily result tiles.</p>
+    <div class="section-title">Monthly Calendar</div>
+    <p class="section-sub">Daily P&L totals and number of trades.</p>
     <div class="calendar" id="calendar"></div>
   </div>
 
@@ -899,8 +909,49 @@ function calculateDailyDiscipline(hist) {
   const latestDate = [...dated].sort((a,b) => String(b.date).localeCompare(String(a.date)))[0].date;
   const dayTrades = dated.filter(t => t.date === latestDate && t.disciplineScore != null);
   if (!dayTrades.length) return 0;
-  const avg = dayTrades.reduce((s,t) => s + Number(t.disciplineScore || 0), 0) / dayTrades.length;
-  return avg;
+  return dayTrades.reduce((s,t) => s + Number(t.disciplineScore || 0), 0) / dayTrades.length;
+}
+
+function calculateAverageRRR(hist) {
+  const vals = hist
+    .filter(t => t.result !== "No Trade")
+    .map(t => parseRR(t.rr))
+    .filter(v => Number.isFinite(v) && v > 0);
+  if (!vals.length) return 0;
+  return vals.reduce((a,b) => a + b, 0) / vals.length;
+}
+
+function calculateSharpe(hist) {
+  const trades = hist.filter(t => t.result !== "No Trade");
+  if (trades.length < 2) return 0;
+
+  const returns = trades
+    .map(t => {
+      const accountSize = Number(t.accountSize || currentAccount?.starting_balance || 0);
+      if (!accountSize) return 0;
+      return pnl(t) / accountSize;
+    })
+    .filter(v => Number.isFinite(v));
+
+  if (returns.length < 2) return 0;
+
+  const mean = returns.reduce((a,b) => a + b, 0) / returns.length;
+  const variance = returns.reduce((a,b) => a + Math.pow(b - mean, 2), 0) / returns.length;
+  const std = Math.sqrt(variance);
+  if (std === 0) return 0;
+
+  return (mean / std) * Math.sqrt(returns.length);
+}
+
+function buildCalendarDays(hist) {
+  const grouped = {};
+  hist.forEach(t => {
+    const d = t.date || "Unknown";
+    if (!grouped[d]) grouped[d] = { pnl: 0, trades: 0 };
+    grouped[d].pnl += pnl(t);
+    grouped[d].trades += 1;
+  });
+  return Object.entries(grouped).sort((a,b) => a[0].localeCompare(b[0]));
 }
 
 async function renderAll(){
@@ -932,11 +983,15 @@ async function renderAll(){
   const startingBalance = Number(currentAccount?.starting_balance || 0);
   const currentBalance = startingBalance + netPnl;
   const dailyDiscipline = calculateDailyDiscipline(hist);
+  const avgRRR = calculateAverageRRR(hist);
+  const sharpe = calculateSharpe(hist);
 
   $("startingBalance").textContent = money(startingBalance);
   $("currentBalance").textContent = money(currentBalance);
   $("netPnl").textContent = money(netPnl);
   $("dailyDiscipline").textContent = dailyDiscipline.toFixed(1);
+  $("avgRRR").textContent = avgRRR.toFixed(2) + "R";
+  $("sharpeRatio").textContent = sharpe.toFixed(2);
 
   $("winRate").textContent = (trades.length ? Math.round((wins.length / trades.length) * 100) : 0) + "%";
   $("profitFactor").textContent = (grossLoss > 0 ? grossProfit / grossLoss : grossProfit > 0 ? grossProfit : 0).toFixed(2);
@@ -990,15 +1045,13 @@ async function renderAll(){
     `).join("")
     : `<div class="muted">Add timed trades to unlock this section.</div>`;
 
-  const groupedDays = {};
-  hist.forEach(t => { groupedDays[t.date] = (groupedDays[t.date] || 0) + pnl(t); });
-
-  const dayArr = Object.entries(groupedDays).sort((a,b) => a[0].localeCompare(b[0]));
+  const dayArr = buildCalendarDays(hist);
   $("calendar").innerHTML = dayArr.length
-    ? dayArr.map(([d,v]) => `
-      <div class="${v > 0 ? "daytile positive" : v < 0 ? "daytile neg" : "daytile flat"}">
+    ? dayArr.map(([d,obj]) => `
+      <div class="${obj.pnl > 0 ? "daytile positive" : obj.pnl < 0 ? "daytile neg" : "daytile flat"}">
         <div class="small">${d}</div>
-        <div style="font-size:20px;font-weight:700;margin-top:4px">${money(v)}</div>
+        <div style="font-size:18px;font-weight:800;margin-top:6px">${money(obj.pnl)}</div>
+        <div class="small" style="margin-top:6px">${obj.trades} trade${obj.trades === 1 ? "" : "s"}</div>
       </div>
     `).join("")
     : `<div class="muted">No saved trading days yet.</div>`;
