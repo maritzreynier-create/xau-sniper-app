@@ -167,6 +167,8 @@
     .calendar-month-label{
       font-size:16px;
       font-weight:800;
+      text-align:center;
+      flex:1;
     }
     .calendar-grid{
       display:grid;
@@ -189,6 +191,8 @@
       min-height:110px;
       cursor:pointer;
       transition:.2s ease;
+      appearance:none;
+      -webkit-appearance:none;
     }
     .calendar-day:hover{
       border-color:rgba(34,197,94,.35);
@@ -220,11 +224,14 @@
       font-size:16px;
       font-weight:800;
       margin-top:4px;
+      line-height:1.15;
+      word-break:break-word;
     }
     .calendar-trades{
       font-size:11px;
       color:var(--muted);
       margin-top:6px;
+      line-height:1.2;
     }
     .calendar-summary{
       margin-top:12px;
@@ -237,6 +244,85 @@
       border-top:1px solid var(--border);
       padding-top:8px;
       margin-top:8px;
+    }
+    @media (max-width: 640px){
+      .calendar-toolbar{
+        gap:6px;
+      }
+      .calendar-month-label{
+        font-size:14px;
+      }
+      .calendar-grid{
+        gap:6px;
+      }
+      .calendar-head{
+        font-size:10px;
+        letter-spacing:.04em;
+        padding:2px 0;
+      }
+      .calendar-day{
+        min-height:78px;
+        padding:8px 6px;
+        border-radius:16px;
+      }
+      .calendar-day.empty{
+        min-height:78px;
+        opacity:.45;
+      }
+      .calendar-date{
+        font-size:11px;
+        margin-bottom:6px;
+      }
+      .calendar-pnl{
+        font-size:12px;
+        margin-top:2px;
+      }
+      .calendar-trades{
+        font-size:10px;
+        margin-top:4px;
+      }
+      .calendar-summary{
+        padding:10px;
+      }
+      .calendar-summary-item{
+        padding-top:7px;
+        margin-top:7px;
+      }
+      #prevMonthBtn,
+      #nextMonthBtn{
+        padding:10px 10px;
+        font-size:12px;
+        min-width:78px;
+      }
+    }
+    @media (max-width: 420px){
+      .calendar-grid{
+        gap:5px;
+      }
+      .calendar-day{
+        min-height:70px;
+        padding:7px 5px;
+        border-radius:14px;
+      }
+      .calendar-day.empty{
+        min-height:70px;
+        opacity:.3;
+      }
+      .calendar-pnl{
+        font-size:11px;
+      }
+      .calendar-trades{
+        font-size:9px;
+      }
+      .calendar-month-label{
+        font-size:13px;
+      }
+      #prevMonthBtn,
+      #nextMonthBtn{
+        min-width:70px;
+        padding:9px 8px;
+        font-size:11px;
+      }
     }
     .daytile{
       border:1px solid var(--border);
@@ -1111,11 +1197,12 @@ function renderCalendar(hist) {
   const monthCells = getMonthMatrix(state.calendarDate);
   const todayKey = new Date().toISOString().slice(0,10);
   const weekHeaders = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
+  const isMobile = window.innerWidth <= 640;
 
   $("calendarMonthLabel").textContent = formatMonthLabel(state.calendarDate);
 
   $("calendar").innerHTML = [
-    ...weekHeaders.map(day => `<div class="calendar-head">${day}</div>`),
+    ...weekHeaders.map(day => `<div class="calendar-head">${isMobile ? day.slice(0,1) : day}</div>`),
     ...monthCells.map(dayKey => {
       if (!dayKey) return `<div class="calendar-day empty"></div>`;
 
@@ -1130,11 +1217,20 @@ function renderCalendar(hist) {
       if (dayKey === state.selectedCalendarDay) classes.push("selected");
 
       const dayNumber = Number(dayKey.slice(-2));
+      const pnlText = tradeCount ? money(pnlValue) : "—";
+      const tradesText = tradeCount
+        ? isMobile
+          ? `${tradeCount}T`
+          : `${tradeCount} trade${tradeCount === 1 ? "" : "s"}`
+        : isMobile
+          ? ""
+          : "No trades";
+
       return `
         <button class="${classes.join(" ")}" type="button" onclick="selectCalendarDay('${dayKey}')">
           <div class="calendar-date">${dayNumber}</div>
-          <div class="calendar-pnl">${tradeCount ? money(pnlValue) : "—"}</div>
-          <div class="calendar-trades">${tradeCount ? `${tradeCount} trade${tradeCount === 1 ? "" : "s"}` : "No trades"}</div>
+          <div class="calendar-pnl">${pnlText}</div>
+          <div class="calendar-trades">${tradesText}</div>
         </button>
       `;
     })
@@ -1409,4 +1505,5 @@ async function initApp() {
 initApp();
 </script></body>
 </html>
+
     
