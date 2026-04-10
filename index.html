@@ -226,6 +226,13 @@
       margin-top:4px;
       line-height:1.15;
       word-break:break-word;
+      color:var(--text);
+    }
+    .calendar-pnl.positive-text{
+      color:var(--green);
+    }
+    .calendar-pnl.negative-text{
+      color:var(--danger);
     }
     .calendar-trades{
       font-size:11px;
@@ -1218,6 +1225,7 @@ function renderCalendar(hist) {
 
       const dayNumber = Number(dayKey.slice(-2));
       const pnlText = tradeCount ? money(pnlValue) : "—";
+      const pnlClass = pnlValue > 0 ? "positive-text" : pnlValue < 0 ? "negative-text" : "";
       const tradesText = tradeCount
         ? isMobile
           ? `${tradeCount}T`
@@ -1229,7 +1237,7 @@ function renderCalendar(hist) {
       return `
         <button class="${classes.join(" ")}" type="button" onclick="selectCalendarDay('${dayKey}')">
           <div class="calendar-date">${dayNumber}</div>
-          <div class="calendar-pnl">${pnlText}</div>
+          <div class="calendar-pnl ${pnlClass}">${pnlText}</div>
           <div class="calendar-trades">${tradesText}</div>
         </button>
       `;
@@ -1505,5 +1513,3 @@ async function initApp() {
 initApp();
 </script></body>
 </html>
-
-    
