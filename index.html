@@ -19,7 +19,6 @@
       --border:#1f2937;
       --green:#22c55e;
       --green-2:#16a34a;
-      --green-3:#14532d;
       --danger:#ef4444;
       --flat:#334155;
     }
@@ -109,7 +108,7 @@
       padding:13px;
       border:none;
       border-radius:18px;
-      background:linear-gradient(90deg,var(--green),var(--green-2));
+      background:linear-gradient(90deg,var(--green),#16a34a);
       color:#03130a;
       font-weight:800;
       cursor:pointer;
@@ -118,6 +117,12 @@
       background:var(--panel-2);
       color:var(--text);
       border:1px solid var(--border);
+    }
+    .btn.small{
+      width:auto;
+      padding:10px 12px;
+      font-size:13px;
+      border-radius:14px;
     }
     .btn:disabled{opacity:.5;cursor:not-allowed}
     .warn{
@@ -147,7 +152,7 @@
     .bars .barrow{margin:10px 0}
     .barlabel{display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px;color:var(--muted)}
     .barbg{background:#1f2937;border-radius:999px;height:12px;overflow:hidden}
-    .barfill{background:linear-gradient(90deg,var(--green),var(--green-2));height:100%}
+    .barfill{background:linear-gradient(90deg,var(--green),#16a34a);height:100%}
     .calendar{display:grid;grid-template-columns:1fr 1fr;gap:8px}
     .daytile{
       border:1px solid var(--border);
@@ -180,6 +185,22 @@
       height:240px;
       width:100%;
     }
+    .account-row{
+      display:grid;
+      grid-template-columns:1fr auto;
+      gap:10px;
+      align-items:end;
+    }
+    .account-badge{
+      display:inline-block;
+      font-size:11px;
+      padding:5px 10px;
+      border-radius:999px;
+      border:1px solid rgba(34,197,94,.25);
+      background:rgba(34,197,94,.08);
+      color:#dcfce7;
+      margin-top:8px;
+    }
   </style>
 </head>
 <body>
@@ -188,6 +209,19 @@
   <div class="title">SteadyMind Journal</div>
   <p class="sub">Built for Psychology. Driven by Discipline.</p>
   <div class="accent-line"></div>
+
+  <div class="card">
+    <div class="section-title">Account</div>
+    <p class="section-sub">Each account has its own history, stats, and equity curve.</p>
+    <div class="account-row">
+      <div>
+        <label class="label" for="accountSelector">Select Account</label>
+        <select id="accountSelector"></select>
+        <div id="accountMeta" class="account-badge">No account selected</div>
+      </div>
+      <button id="addAccountBtn" class="btn small" type="button">Add Account</button>
+    </div>
+  </div>
 
   <div class="grid2">
     <div class="card"><div class="label">Win Rate</div><div class="value" id="winRate">0%</div></div>
@@ -365,7 +399,8 @@
 const SUPABASE_URL = "https://jreasuuibdkescqsmabu.supabase.co";
 const SUPABASE_KEY = "sb_publishable_ihBmxcaFvdGimh2R5VsuzA_w6SflTxU";
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-const TABLE_NAME = "trades";
+const TRADES_TABLE = "trades";
+const ACCOUNTS_TABLE = "accounts";
 
 const biasOptions = ["Buy","Sell","Wait"];
 const resultOptions = ["Win","Loss","BE","No Trade"];
@@ -386,6 +421,9 @@ const state = {
 
 const $ = id => document.getElementById(id);
 let equityChart = null;
+let currentAccountId = null;
+let currentAccount = null;
+let accountsCache = [];
 
 function parseRR(rr){
   if(!rr) return 0;
@@ -428,9 +466,12 @@ function weekdayName(date){
 function buildEquitySeries(hist) {
   const ordered = [...hist]
     .filter(t => t.result !== "No Trade")
-    .sort((a,b) => String(a.date || "").localeCompare(String(b.date || "")));
+    .sort((a,b) => {
+      const d = String(a.date || "").localeCompare(String(b.date || ""));
+      return d !== 0 ? d : String(a.id || "").localeCompare(String(b.id || ""));
+    });
 
-  let running = 0;
+  let running = Number(currentAccount?.starting_balance || 0);
   return ordered.map((t, index) => {
     running += pnl(t);
     return {
@@ -444,17 +485,15 @@ function renderEquityChart(hist) {
   const series = buildEquitySeries(hist);
   const ctx = document.getElementById("equityChart").getContext("2d");
 
-  if (equityChart) {
-    equityChart.destroy();
-  }
+  if (equityChart) equityChart.destroy();
 
   equityChart = new Chart(ctx, {
     type: "line",
     data: {
-      labels: series.map(x => x.label),
+      labels: series.length ? series.map(x => x.label) : ["No Data"],
       datasets: [{
         label: "Equity",
-        data: series.map(x => x.equity),
+        data: series.length ? series.map(x => x.equity) : [Number(currentAccount?.starting_balance || 0)],
         borderColor: "#22c55e",
         backgroundColor: "rgba(34,197,94,0.15)",
         fill: true,
@@ -466,9 +505,7 @@ function renderEquityChart(hist) {
     options: {
       responsive: true,
       maintainAspectRatio: false,
-      plugins: {
-        legend: { display: false }
-      },
+      plugins: { legend: { display: false } },
       scales: {
         x: {
           ticks: { color: "#94a3b8" },
@@ -486,14 +523,58 @@ function renderEquityChart(hist) {
   });
 }
 
-async function loadTrades() {
+async function loadAccounts() {
   const { data, error } = await supabaseClient
-    .from(TABLE_NAME)
+    .from(ACCOUNTS_TABLE)
     .select("*")
+    .order("created_at", { ascending: true });
+
+  if (error) {
+    console.error("Accounts load error:", error);
+    alert("ACCOUNTS ERROR: " + error.message);
+    return;
+  }
+
+  accountsCache = data || [];
+  if (!accountsCache.length) {
+    alert("No accounts found. Please run Part A again or add starter accounts.");
+    return;
+  }
+
+  const selector = $("accountSelector");
+  selector.innerHTML = accountsCache.map(acc =>
+    `<option value="${acc.id}">${acc.name} • ${acc.type}</option>`
+  ).join("");
+
+  if (!currentAccountId || !accountsCache.some(x => x.id === currentAccountId)) {
+    currentAccountId = accountsCache[0].id;
+  }
+
+  selector.value = currentAccountId;
+  currentAccount = accountsCache.find(x => x.id === currentAccountId) || null;
+  renderAccountMeta();
+}
+
+function renderAccountMeta() {
+  if (!currentAccount) {
+    $("accountMeta").textContent = "No account selected";
+    return;
+  }
+  $("accountMeta").textContent = `${currentAccount.type} • Starting Balance ${money(currentAccount.starting_balance || 0)}`;
+}
+
+async function loadTrades() {
+  if (!currentAccountId) return [];
+
+  const { data, error } = await supabaseClient
+    .from(TRADES_TABLE)
+    .select("*")
+    .eq("account_id", currentAccountId)
     .order("date", { ascending: false });
 
   if (error) {
     console.error("Load error:", error);
+    alert("LOAD ERROR: " + error.message);
     return [];
   }
   return data || [];
@@ -501,24 +582,21 @@ async function loadTrades() {
 
 async function saveTradeToCloud(trade) {
   const { data, error } = await supabaseClient
-    .from(TABLE_NAME)
+    .from(TRADES_TABLE)
     .insert([trade])
     .select();
-
-  console.log("TRADE SENT:", trade);
-  console.log("SAVE RESULT:", data);
 
   if (error) {
     console.error("Save error:", error);
     alert("SAVE ERROR: " + error.message);
   } else {
-    alert("SUCCESS");
+    console.log("SAVE RESULT:", data);
   }
 }
 
 async function deleteTrade(id) {
   const { error } = await supabaseClient
-    .from(TABLE_NAME)
+    .from(TRADES_TABLE)
     .delete()
     .eq("id", id);
 
@@ -527,6 +605,36 @@ async function deleteTrade(id) {
     alert("DELETE ERROR: " + error.message);
   }
 
+  renderAll();
+}
+
+async function addAccount() {
+  const name = prompt("Account name?");
+  if (!name) return;
+
+  const typeInput = prompt("Account type? Enter: Prop, Demo, or Real", "Demo");
+  if (!typeInput) return;
+  const type = String(typeInput).trim();
+
+  if (!["Prop","Demo","Real"].includes(type)) {
+    alert("Type must be exactly: Prop, Demo, or Real");
+    return;
+  }
+
+  const balanceInput = prompt("Starting balance?", "10000");
+  const starting_balance = Number(balanceInput || 0);
+
+  const { error } = await supabaseClient
+    .from(ACCOUNTS_TABLE)
+    .insert([{ name, type, starting_balance }]);
+
+  if (error) {
+    console.error("Add account error:", error);
+    alert("ADD ACCOUNT ERROR: " + error.message);
+    return;
+  }
+
+  await loadAccounts();
   renderAll();
 }
 
@@ -638,9 +746,15 @@ function getWarnings(hist){
 }
 
 async function renderAll(){
+  currentAccount = accountsCache.find(x => x.id === currentAccountId) || null;
+  renderAccountMeta();
+
   const hist = await loadTrades();
 
   $("date").value ||= new Date().toISOString().slice(0,10);
+  if (currentAccount?.starting_balance) {
+    $("accountSize").value = currentAccount.starting_balance;
+  }
   $("riskAmount").value = ((Number($("accountSize").value || 0) * Number($("riskPercent").value || 0)) / 100).toFixed(2);
 
   renderPills("biasPills", biasOptions, state.bias, v => state.bias = v);
@@ -740,7 +854,7 @@ async function renderAll(){
         </div>
       </div>
     `).join("")
-    : `<div class="muted">No trades saved yet.</div>`;
+    : `<div class="muted">No trades saved yet for this account.</div>`;
 }
 
 $("result").innerHTML = resultOptions.map(x => `<option>${x}</option>`).join("");
@@ -756,13 +870,29 @@ $("edgeLockBtn").onclick = () => {
   renderAll();
 };
 
+$("accountSelector").addEventListener("change", () => {
+  currentAccountId = $("accountSelector").value;
+  currentAccount = accountsCache.find(x => x.id === currentAccountId) || null;
+  renderAll();
+});
+
+$("addAccountBtn").onclick = async () => {
+  await addAccount();
+};
+
 $("saveBtn").onclick = async () => {
+  if (!currentAccountId) {
+    alert("Please select an account first.");
+    return;
+  }
+
   const hist = await loadTrades();
   const warnings = getWarnings(hist);
   const danger = warnings.length >= 3 || getLossStreak(hist) >= 3;
   if (state.edgeLock && danger) return;
 
   const trade = {
+    account_id: currentAccountId,
     pair: $("pair").value || "XAUUSD",
     date: $("date").value,
     setup: state.setup,
@@ -811,11 +941,18 @@ $("exportBtn").onclick = async () => {
   const blob = new Blob([JSON.stringify(trades, null, 2)], { type: "application/json" });
   const a = document.createElement("a");
   a.href = URL.createObjectURL(blob);
-  a.download = "steadymind-journal-backup.json";
+  a.download = `steadymind-${(currentAccount?.name || "account").replace(/\s+/g,"-").toLowerCase()}-backup.json`;
   a.click();
 };
 
-renderAll();
+async function initApp() {
+  await loadAccounts();
+  await renderAll();
+}
+
+initApp();
 </script>
+</body>
+</html>
 </body>
 </html>
