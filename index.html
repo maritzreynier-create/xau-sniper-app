@@ -261,10 +261,11 @@ async function loadTrades() {
   const { data, error } = await supabaseClient
     .from("trades")
     .select("*")
-    .order("id", { ascending: false });
+    .order("date", { ascending: false });
 
   if (error) {
     console.error("Load error:", error);
+    alert("LOAD ERROR: " + error.message);
     return [];
   }
 
@@ -277,11 +278,12 @@ async function saveTradeToCloud(trade) {
     .insert([trade])
     .select();
 
-  console.log("TRADE:", trade);
-  console.log("RESULT:", data, error);
+  console.log("TRADE SENT:", trade);
+  console.log("SAVE RESULT:", data);
 
   if (error) {
-    alert("ERROR: " + error.message);
+    console.error("Save error:", error);
+    alert("SAVE ERROR: " + error.message);
   } else {
     alert("SUCCESS");
   }
@@ -295,6 +297,7 @@ async function deleteTrade(id) {
 
   if (error) {
     console.error("Delete error:", error);
+    alert("DELETE ERROR: " + error.message);
   }
 
   renderAll();
@@ -534,12 +537,12 @@ $("saveBtn").onclick = async () => {
     date: $("date").value,
     setup: state.setup,
     bias: state.bias,
-    entry: $("entry").value,
-    sl: $("sl").value,
-    tp: $("tp").value,
-    accountSize: $("accountSize").value,
-    riskPercent: $("riskPercent").value,
-    riskAmount: $("riskAmount").value,
+    entry: Number($("entry").value || 0),
+    sl: Number($("sl").value || 0),
+    tp: Number($("tp").value || 0),
+    accountSize: Number($("accountSize").value || 0),
+    riskPercent: Number($("riskPercent").value || 0),
+    riskAmount: Number($("riskAmount").value || 0),
     rr: $("rr").value,
     result: $("result").value,
     time: $("time").value,
@@ -547,11 +550,31 @@ $("saveBtn").onclick = async () => {
     newsOutcome: state.newsOutcome,
     newsNotes: $("newsNotes").value,
     emotionBefore: state.emotion,
-    confidence: $("confidence").value,
+    confidence: Number($("confidence").value || 0),
     notes: $("reviewNotes").value,
     session: sessionFromTime($("time").value),
     weekday: weekdayName($("date").value)
   };
+
+  await saveTradeToCloud(trade);
+
+  $("entry").value = "";
+  $("sl").value = "";
+  $("tp").value = "";
+  $("rr").value = "1:3";
+  $("newsEvent").value = "";
+  $("newsNotes").value = "";
+  $("reviewNotes").value = "";
+  $("time").value = "";
+
+  state.bias = "Wait";
+  state.setup = setupOptions[0];
+  state.emotion = "Focused";
+  state.newsOutcome = "Neutral";
+  state.checklist = Object.fromEntries(checklistItems.map(x => [x, false]));
+
+  renderAll();
+};
 
   // Reset inputs after save
 $("entry").value = "";
