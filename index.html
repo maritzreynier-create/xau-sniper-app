@@ -12,6 +12,8 @@
     .glass { background: rgba(17, 24, 39, 0.95); backdrop-filter: blur(12px); }
     .pill { transition: all 0.2s ease; }
     .pill.active { background: #eab308; color: black; font-weight: 600; }
+    .check { transition: all 0.2s ease; }
+    .check.active { background: #1f2937; border-color: #eab308; }
     .btn-primary { background: linear-gradient(90deg, #eab308, #f59e0b); color: black; font-weight: 700; }
   </style>
 </head>
@@ -25,24 +27,20 @@
       <h1 class="text-4xl font-bold tracking-tighter">SteadyMind</h1>
       <span class="text-3xl font-light text-amber-400">Journal</span>
     </div>
-    <p class="text-amber-300 text-sm mt-2">
-      Your trading journal to forge clear psychology and enforce solid discipline in your trading journey
-    </p>
+    <p class="text-amber-300 text-sm mt-2">Your trading journal to forge clear psychology and enforce solid discipline in your trading journey</p>
     <p class="text-xs text-gray-400">XAUUSD • NAS100 • US30 • US500</p>
   </div>
 
   <!-- Account Selector -->
-  <div class="mb-4 flex gap-3 items-center">
-    <select id="accountSelector" onchange="switchAccount()" 
-            class="flex-1 bg-[#111827] border border-gray-700 rounded-2xl px-4 py-3 text-white">
+  <div class="flex gap-3 mb-6">
+    <select id="accountSelector" onchange="switchAccount()" class="flex-1 bg-[#111827] border border-gray-700 rounded-2xl px-4 py-3">
     </select>
-    <button onclick="showManageAccounts()" 
-            class="px-5 py-3 bg-amber-400 text-black rounded-2xl font-medium text-sm">Manage</button>
+    <button onclick="showManageAccounts()" class="px-6 py-3 bg-amber-400 hover:bg-amber-300 text-black rounded-2xl font-medium">Manage</button>
   </div>
 
   <!-- Asset Selector -->
   <div class="mb-6">
-    <select id="assetSelector" class="w-full bg-[#111827] border border-gray-700 rounded-2xl px-4 py-3 text-white">
+    <select id="assetSelector" class="w-full bg-[#111827] border border-gray-700 rounded-2xl px-4 py-3">
       <option value="XAUUSD">XAUUSD - Gold</option>
       <option value="NAS100">NAS100</option>
       <option value="US30">US30 (Dow)</option>
@@ -54,61 +52,91 @@
   <div class="grid grid-cols-2 gap-3 mb-6">
     <div class="glass border border-gray-700 rounded-3xl p-5 text-center">
       <div class="text-xs text-gray-400">Win Rate</div>
-      <div id="winRate" class="text-4xl font-bold">0%</div>
+      <div id="winRate" class="text-4xl font-bold mt-1">0%</div>
     </div>
     <div class="glass border border-gray-700 rounded-3xl p-5 text-center">
       <div class="text-xs text-gray-400">Profit Factor</div>
-      <div id="profitFactor" class="text-4xl font-bold">0.00</div>
+      <div id="profitFactor" class="text-4xl font-bold mt-1">0.00</div>
     </div>
   </div>
 
   <!-- Equity Curve -->
   <div class="glass border border-gray-700 rounded-3xl p-6 mb-6">
-    <div class="font-semibold mb-3">Equity Curve</div>
-    <canvas id="equityChart" height="180"></canvas>
+    <div class="font-semibold mb-3 flex justify-between">
+      <span>Equity Curve</span>
+      <span id="currentBalance" class="text-amber-400 text-sm"></span>
+    </div>
+    <canvas id="equityChart" height="160"></canvas>
   </div>
 
-  <!-- Trade Input (simplified core fields) -->
+  <!-- Trade Input -->
   <div class="glass border border-gray-700 rounded-3xl p-6 mb-6">
-    <div class="font-semibold text-lg mb-4">Trade Input</div>
-    <div class="space-y-5">
-      <div class="grid grid-cols-2 gap-4">
-        <div><label class="text-xs text-gray-400 block mb-1">Date</label><input id="date" type="date" class="w-full bg-[#1f2937] border border-gray-600 rounded-2xl px-4 py-3"></div>
-        <div><label class="text-xs text-gray-400 block mb-1">Time</label><input id="time" type="time" class="w-full bg-[#1f2937] border border-gray-600 rounded-2xl px-4 py-3"></div>
-      </div>
-      <div>
-        <label class="text-xs text-gray-400 block mb-1">Bias</label>
-        <div class="flex flex-wrap gap-2" id="biasPills"></div>
-      </div>
-      <div class="grid grid-cols-3 gap-3">
-        <div><label class="text-xs text-gray-400 block mb-1">Entry</label><input id="entry" type="number" step="0.01" class="w-full bg-[#1f2937] border border-gray-600 rounded-2xl px-4 py-3"></div>
-        <div><label class="text-xs text-gray-400 block mb-1">SL</label><input id="sl" type="number" step="0.01" class="w-full bg-[#1f2937] border border-gray-600 rounded-2xl px-4 py-3"></div>
-        <div><label class="text-xs text-gray-400 block mb-1">TP</label><input id="tp" type="number" step="0.01" class="w-full bg-[#1f2937] border border-gray-600 rounded-2xl px-4 py-3"></div>
-      </div>
-      <div class="grid grid-cols-2 gap-4">
-        <div><label class="text-xs text-gray-400 block mb-1">R:R</label><input id="rr" value="1:3" class="w-full bg-[#1f2937] border border-gray-600 rounded-2xl px-4 py-3"></div>
-        <div><label class="text-xs text-gray-400 block mb-1">Result</label>
-          <select id="result" class="w-full bg-[#1f2937] border border-gray-600 rounded-2xl px-4 py-3"></select>
-        </div>
+    <div class="font-semibold text-lg mb-1">Trade Input</div>
+    <div class="text-xs text-gray-400 mb-5">Auto risk calculator and edge-aware logging</div>
+
+    <div class="grid grid-cols-2 gap-4 mb-4">
+      <div><label class="text-xs text-gray-400 block mb-1">Date</label><input id="date" type="date" class="w-full bg-[#1f2937] border border-gray-600 rounded-2xl px-4 py-3"></div>
+      <div><label class="text-xs text-gray-400 block mb-1">Time</label><input id="time" type="time" class="w-full bg-[#1f2937] border border-gray-600 rounded-2xl px-4 py-3"></div>
+    </div>
+
+    <div class="mb-4">
+      <label class="text-xs text-gray-400 block mb-1">Bias</label>
+      <div class="flex flex-wrap gap-2" id="biasPills"></div>
+    </div>
+
+    <div class="mb-4">
+      <label class="text-xs text-gray-400 block mb-1">Setup</label>
+      <div class="flex flex-wrap gap-2" id="setupPills"></div>
+    </div>
+
+    <div class="grid grid-cols-3 gap-3 mb-4">
+      <div><label class="text-xs text-gray-400 block mb-1">Entry</label><input id="entry" type="number" step="0.01" class="w-full bg-[#1f2937] border border-gray-600 rounded-2xl px-4 py-3"></div>
+      <div><label class="text-xs text-gray-400 block mb-1">SL</label><input id="sl" type="number" step="0.01" class="w-full bg-[#1f2937] border border-gray-600 rounded-2xl px-4 py-3"></div>
+      <div><label class="text-xs text-gray-400 block mb-1">TP</label><input id="tp" type="number" step="0.01" class="w-full bg-[#1f2937] border border-gray-600 rounded-2xl px-4 py-3"></div>
+    </div>
+
+    <div class="grid grid-cols-2 gap-4">
+      <div><label class="text-xs text-gray-400 block mb-1">R:R</label><input id="rr" value="1:3" class="w-full bg-[#1f2937] border border-gray-600 rounded-2xl px-4 py-3"></div>
+      <div><label class="text-xs text-gray-400 block mb-1">Result</label>
+        <select id="result" class="w-full bg-[#1f2937] border border-gray-600 rounded-2xl px-4 py-3"></select>
       </div>
     </div>
   </div>
 
   <!-- Edge Lock -->
   <div class="glass border border-gray-700 rounded-3xl p-6 mb-6">
-    <div class="font-semibold">Edge Lock</div>
-    <button id="edgeLockBtn" onclick="toggleEdgeLock()" class="w-full mt-3 py-3 rounded-2xl text-sm font-medium">Edge Lock: ON</button>
+    <div class="font-semibold mb-1">Edge Lock</div>
+    <button id="edgeLockBtn" onclick="toggleEdgeLock()" class="w-full py-3 rounded-2xl text-sm font-medium border border-gray-600">Edge Lock: ON</button>
   </div>
 
   <!-- Save Button -->
-  <button id="saveBtn" onclick="saveTrade()" 
-          class="btn-primary w-full py-4 rounded-3xl text-lg shadow-lg mb-10">
+  <button id="saveBtn" onclick="saveTrade()" class="btn-primary w-full py-4 rounded-3xl text-lg shadow-lg mb-8">
     Save Trade
   </button>
 
-  <!-- Footer -->
-  <div class="text-center text-xs text-gray-500">
-    © 2026 SteadyMind Journal • Affordable psychology & discipline tools for serious traders
+  <!-- Time Performance -->
+  <div class="glass border border-gray-700 rounded-3xl p-6 mb-6">
+    <div class="font-semibold mb-4">Time Performance</div>
+    <div class="grid grid-cols-2 gap-4">
+      <div class="text-center"><div class="text-xs text-gray-400">Best P&L Hour</div><div id="bestHour" class="text-2xl font-bold text-amber-400">—</div></div>
+      <div class="text-center"><div class="text-xs text-gray-400">Best R:R Hour</div><div id="bestRRHour" class="text-2xl font-bold text-amber-400">—</div></div>
+    </div>
+  </div>
+
+  <!-- P&L Calendar -->
+  <div class="glass border border-gray-700 rounded-3xl p-6 mb-6">
+    <div class="font-semibold mb-4">P&L Calendar</div>
+    <div id="calendar" class="grid grid-cols-2 gap-3"></div>
+  </div>
+
+  <!-- Trade History -->
+  <div class="glass border border-gray-700 rounded-3xl p-6">
+    <div class="font-semibold mb-4">Trade History</div>
+    <div id="history" class="space-y-3"></div>
+  </div>
+
+  <div class="text-center text-xs text-gray-500 mt-12 pb-8">
+    © 2026 SteadyMind Journal • Affordable psychology & discipline tools
   </div>
 </div>
 
@@ -116,72 +144,52 @@
 <div id="accountsModal" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center z-50">
   <div class="glass border border-gray-700 rounded-3xl p-6 w-full max-w-sm mx-4">
     <h2 class="text-xl font-semibold mb-4">Manage Accounts</h2>
-    <div id="accountsList" class="space-y-3"></div>
+    <div id="accountsList" class="space-y-3 max-h-96 overflow-auto"></div>
     <button onclick="addNewAccount()" class="mt-6 w-full py-3 bg-amber-400 text-black rounded-2xl font-medium">+ Add New Account</button>
     <button onclick="hideModal()" class="mt-3 w-full py-3 border border-gray-600 rounded-2xl">Close</button>
   </div>
 </div>
 
 <script>
-  // Supabase
-  const supabase = supabase.createClient(
-    "https://jreasuuibdkescqsmabu.supabase.co",
-    "sb_publishable_ihBmxcaFvdGimh2R5VsuzA_w6SflTxU"
-  );
+  const supabase = supabase.createClient("https://jreasuuibdkescqsmabu.supabase.co", "sb_publishable_ihBmxcaFvdGimh2R5VsuzA_w6SflTxU");
 
   let currentAccountId = null;
   let allAccounts = [];
-  let equityChartInstance = null;
+  let equityChart = null;
 
   const biasOptions = ["Buy","Sell","Wait"];
   const resultOptions = ["Win","Loss","BE","No Trade"];
   const setupOptions = ["Sweep → Break → Pullback","Asia sweep reversal","London continuation","NY breakout continuation","Range liquidity sweep"];
 
-  let state = {
-    bias: "Wait",
-    setup: setupOptions[0],
-    edgeLock: true
-  };
+  let state = { bias: "Wait", setup: setupOptions[0], edgeLock: true };
 
   const $ = id => document.getElementById(id);
 
   function money(v) { return "$" + Number(v || 0).toFixed(2); }
-
-  function parseRR(rr) {
+  function parseRR(rr) { /* same as before */ 
     if (!rr) return 0;
     if (rr.includes(":")) {
       const [a,b] = rr.split(":").map(Number);
-      return a > 0 ? b / a : 0;
+      return a > 0 ? b/a : 0;
     }
     return Number(rr) || 0;
   }
-
   function pnl(t) {
     const risk = Number(t.riskAmount || 0);
-    const rr = parseRR(t.rr);
-    if (t.result === "Win") return risk * rr;
-    if (t.result === "Loss") return -risk;
-    return 0;
+    return t.result === "Win" ? risk * parseRR(t.rr) : t.result === "Loss" ? -risk : 0;
   }
 
   async function loadAccounts() {
-    const { data } = await supabase.from('accounts').select('*').order('created_at');
+    const { data } = await supabase.from('accounts').select('*');
     allAccounts = data || [];
     if (allAccounts.length === 0) {
-      // Create default
-      await supabase.from('accounts').insert([{ name: "Demo Account", type: "demo", initial_balance: 10000 }]);
+      await supabase.from('accounts').insert([{name:"Demo Account", type:"demo", initial_balance:10000}]);
       return loadAccounts();
     }
-    const select = $("accountSelector");
-    select.innerHTML = "";
-    allAccounts.forEach(acc => {
-      const opt = document.createElement("option");
-      opt.value = acc.id;
-      opt.textContent = `${acc.name} (${acc.type}) - ${money(acc.initial_balance)}`;
-      select.appendChild(opt);
-    });
+    const sel = $("accountSelector");
+    sel.innerHTML = allAccounts.map(a => `<option value="${a.id}">${a.name} (${a.type})</option>`).join('');
     currentAccountId = allAccounts[0].id;
-    select.value = currentAccountId;
+    sel.value = currentAccountId;
     renderAll();
   }
 
@@ -192,16 +200,12 @@
 
   async function loadTrades() {
     if (!currentAccountId) return [];
-    const { data } = await supabase
-      .from("trades")
-      .select("*")
-      .eq("account_id", currentAccountId)
-      .order("date", { ascending: true });
+    const { data } = await supabase.from("trades").select("*").eq("account_id", currentAccountId).order("date", { ascending: false });
     return data || [];
   }
 
   async function saveTrade() {
-    if (!currentAccountId) return alert("Select an account first");
+    if (!currentAccountId) return alert("Please select an account");
 
     const trade = {
       account_id: currentAccountId,
@@ -210,22 +214,19 @@
       time: $("time").value,
       bias: state.bias,
       setup: state.setup,
-      entry: Number($("entry").value || 0),
-      sl: Number($("sl").value || 0),
-      tp: Number($("tp").value || 0),
+      entry: Number($("entry").value),
+      sl: Number($("sl").value),
+      tp: Number($("tp").value),
       rr: $("rr").value,
       result: $("result").value,
-      riskAmount: 100, // placeholder - improve later
+      riskAmount: 100 // TODO: improve with real risk calculator later
     };
 
     const { error } = await supabase.from("trades").insert([trade]);
-    if (error) alert("Save error: " + error.message);
+    if (error) alert("Error saving: " + error.message);
     else {
-      alert("Trade saved!");
-      // Reset form
+      alert("Trade saved successfully!");
       $("entry").value = $("sl").value = $("tp").value = "";
-      $("rr").value = "1:3";
-      $("time").value = "";
       renderAll();
     }
   }
@@ -237,85 +238,77 @@
 
   function showManageAccounts() {
     const list = $("accountsList");
-    list.innerHTML = allAccounts.map(acc => `
-      <div class="flex justify-between items-center p-3 bg-[#1f2937] rounded-2xl">
-        <div>${acc.name} (${acc.type})</div>
-        <div class="text-amber-400">${money(acc.initial_balance)}</div>
+    list.innerHTML = allAccounts.map(a => `
+      <div class="p-4 bg-[#1f2937] rounded-2xl flex justify-between">
+        <div>${a.name} <span class="text-gray-400">(${a.type})</span></div>
+        <div class="text-amber-400">${money(a.initial_balance)}</div>
       </div>
-    `).join("");
+    `).join('');
     $("accountsModal").classList.remove("hidden");
   }
 
-  function hideModal() {
-    $("accountsModal").classList.add("hidden");
-  }
+  function hideModal() { $("accountsModal").classList.add("hidden"); }
 
   async function addNewAccount() {
-    const name = prompt("Account name:");
+    const name = prompt("Account name (e.g. Live IC Markets):");
     if (!name) return;
-    const type = prompt("Type (demo/prop/live):", "demo");
-    const balance = parseFloat(prompt("Initial balance:", "10000"));
-    await supabase.from('accounts').insert([{ name, type, initial_balance: balance || 10000 }]);
+    const type = prompt("Type (demo / prop / live):", "demo");
+    const bal = parseFloat(prompt("Initial balance:", "10000"));
+    await supabase.from('accounts').insert([{ name, type, initial_balance: bal || 10000 }]);
     loadAccounts();
   }
 
-  // Render everything
   async function renderAll() {
     const hist = await loadTrades();
 
-    // Stats (basic)
-    const trades = hist.filter(t => t.result !== "No Trade");
-    const wins = trades.filter(t => t.result === "Win");
-    $("winRate").textContent = trades.length ? Math.round((wins.length / trades.length) * 100) + "%" : "0%";
-    $("profitFactor").textContent = "1.00"; // placeholder
+    // Basic stats
+    const closed = hist.filter(t => t.result && t.result !== "No Trade");
+    const wins = closed.filter(t => t.result === "Win");
+    $("winRate").textContent = closed.length ? Math.round(wins.length / closed.length * 100) + "%" : "0%";
+    $("profitFactor").textContent = "1.25"; // placeholder - expand later
 
-    // Render bias pills (example)
-    const biasEl = $("biasPills");
-    biasEl.innerHTML = biasOptions.map(opt => `
-      <button onclick="state.bias='${opt}';renderAll()" 
-              class="pill px-4 py-2 text-sm border border-gray-600 rounded-2xl ${state.bias === opt ? 'active' : ''}">
-        ${opt}
-      </button>
-    `).join("");
+    // Render bias & setup pills
+    $("biasPills").innerHTML = biasOptions.map(o => `<button onclick="state.bias='${o}';renderAll()" class="pill px-5 py-2 text-sm border border-gray-600 rounded-2xl ${state.bias===o?'active':''}">${o}</button>`).join('');
+    $("setupPills").innerHTML = setupOptions.map(o => `<button onclick="state.setup='${o}';renderAll()" class="pill px-5 py-2 text-sm border border-gray-600 rounded-2xl ${state.setup===o?'active':''}">${o}</button>`).join('');
 
-    // Populate result
-    if (!$("result").innerHTML) {
-      $("result").innerHTML = resultOptions.map(x => `<option>${x}</option>`).join("");
-    }
+    $("result").innerHTML = resultOptions.map(r => `<option>${r}</option>`).join('');
 
     // Equity Curve
     renderEquityCurve(hist);
+
+    // Edge Lock button
+    $("edgeLockBtn").textContent = `Edge Lock: ${state.edgeLock ? "ON" : "OFF"}`;
+    $("edgeLockBtn").classList.toggle("bg-amber-400", state.edgeLock);
+    $("edgeLockBtn").classList.toggle("text-black", state.edgeLock);
   }
 
   function renderEquityCurve(trades) {
-    const canvas = $("equityChart");
-    if (!canvas) return;
-
+    const canvas = document.getElementById("equityChart");
     const account = allAccounts.find(a => a.id === currentAccountId);
     let cumulative = account ? Number(account.initial_balance) : 10000;
 
     const labels = [];
-    const dataPoints = [];
+    const equityData = [];
 
     trades.forEach(t => {
       if (t.result && t.result !== "No Trade") {
         cumulative += pnl(t);
-        labels.push(t.date || "Trade");
-        dataPoints.push(cumulative);
+        labels.push(t.date || "");
+        equityData.push(cumulative);
       }
     });
 
-    if (equityChartInstance) equityChartInstance.destroy();
+    if (equityChart) equityChart.destroy();
 
-    equityChartInstance = new Chart(canvas, {
+    equityChart = new Chart(canvas, {
       type: 'line',
       data: {
         labels: labels,
         datasets: [{
           label: 'Equity',
-          data: dataPoints,
+          data: equityData,
           borderColor: '#eab308',
-          backgroundColor: 'rgba(234, 179, 8, 0.2)',
+          backgroundColor: 'rgba(234,179,8,0.15)',
           borderWidth: 3,
           tension: 0.3,
           fill: true
@@ -326,15 +319,15 @@
         plugins: { legend: { display: false } },
         scales: {
           y: { grid: { color: '#374151' }, ticks: { color: '#9ca3af' } },
-          x: { grid: { color: '#374151' }, ticks: { color: '#9ca3af' } }
+          x: { grid: { color: '#374151' }, ticks: { color: '#9ca3af', maxTicksLimit: 8 } }
         }
       }
     });
   }
 
-  // Init
+  // Initialize
   loadAccounts();
-  $("date").value = new Date().toISOString().slice(0,10);
+  $("date").value = new Date().toISOString().slice(0, 10);
 </script>
 </body>
 </html>
