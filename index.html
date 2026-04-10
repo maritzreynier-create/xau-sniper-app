@@ -13,7 +13,6 @@
       --bg:#020617;
       --panel:#0f172a;
       --panel-2:#111827;
-      --card:#0b1220;
       --text:#e5e7eb;
       --muted:#94a3b8;
       --border:#1f2937;
@@ -40,6 +39,7 @@
     .title{font-size:30px;font-weight:800;margin:0 0 4px}
     .sub{color:var(--muted);font-size:14px;margin:0 0 16px}
     .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
     .card{
       background:rgba(15,23,42,.92);
       border:1px solid var(--border);
@@ -50,6 +50,7 @@
     }
     .label{font-size:12px;color:var(--muted);margin-bottom:6px;display:block}
     .value{font-size:28px;font-weight:800}
+    .value-small{font-size:22px;font-weight:800}
     .section-title{font-size:16px;font-weight:800;margin:0 0 4px}
     .section-sub{font-size:13px;color:var(--muted);margin:0 0 12px}
     input,textarea,select{
@@ -117,6 +118,10 @@
       background:var(--panel-2);
       color:var(--text);
       border:1px solid var(--border);
+    }
+    .btn.danger{
+      background:linear-gradient(90deg,#ef4444,#dc2626);
+      color:#fff;
     }
     .btn.small{
       width:auto;
@@ -201,6 +206,23 @@
       color:#dcfce7;
       margin-top:8px;
     }
+    .badge-prop{background:rgba(59,130,246,.12);border-color:rgba(59,130,246,.25);color:#bfdbfe}
+    .badge-demo{background:rgba(34,197,94,.12);border-color:rgba(34,197,94,.25);color:#dcfce7}
+    .badge-real{background:rgba(168,85,247,.12);border-color:rgba(168,85,247,.25);color:#e9d5ff}
+    .modal-backdrop{
+      position:fixed; inset:0; background:rgba(2,6,23,.72);
+      display:none; align-items:center; justify-content:center; z-index:50;
+      padding:16px;
+    }
+    .modal{
+      width:100%; max-width:420px;
+      background:rgba(15,23,42,.98);
+      border:1px solid var(--border);
+      border-radius:24px;
+      padding:16px;
+      box-shadow:0 20px 40px rgba(0,0,0,.45);
+    }
+    .modal-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
   </style>
 </head>
 <body>
@@ -219,7 +241,26 @@
         <select id="accountSelector"></select>
         <div id="accountMeta" class="account-badge">No account selected</div>
       </div>
-      <button id="addAccountBtn" class="btn small" type="button">Add Account</button>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end">
+        <button id="addAccountBtn" class="btn small" type="button">Add</button>
+        <button id="editAccountBtn" class="btn secondary small" type="button">Edit</button>
+        <button id="deleteAccountBtn" class="btn danger small" type="button">Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid3">
+    <div class="card">
+      <div class="label">Starting Balance</div>
+      <div class="value-small" id="startingBalance">$0.00</div>
+    </div>
+    <div class="card">
+      <div class="label">Current Balance</div>
+      <div class="value-small" id="currentBalance">$0.00</div>
+    </div>
+    <div class="card">
+      <div class="label">Net P&L</div>
+      <div class="value-small" id="netPnl">$0.00</div>
     </div>
   </div>
 
@@ -394,6 +435,31 @@
   </div>
 </div>
 
+<div id="accountModalBackdrop" class="modal-backdrop">
+  <div class="modal">
+    <div class="section-title" id="accountModalTitle">Add Account</div>
+    <p class="section-sub">Create or update an account profile.</p>
+
+    <label class="label" for="accountNameInput">Account Name</label>
+    <input id="accountNameInput" type="text" placeholder="Main Prop">
+
+    <label class="label" for="accountTypeInput" style="margin-top:12px">Account Type</label>
+    <select id="accountTypeInput">
+      <option value="Prop">Prop</option>
+      <option value="Demo">Demo</option>
+      <option value="Real">Real</option>
+    </select>
+
+    <label class="label" for="accountBalanceInput" style="margin-top:12px">Starting Balance</label>
+    <input id="accountBalanceInput" type="number" placeholder="10000">
+
+    <div class="modal-actions">
+      <button id="accountModalCancel" class="btn secondary" type="button">Cancel</button>
+      <button id="accountModalSave" class="btn" type="button">Save</button>
+    </div>
+  </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
 <script>
 const SUPABASE_URL = "https://jreasuuibdkescqsmabu.supabase.co";
@@ -424,6 +490,8 @@ let equityChart = null;
 let currentAccountId = null;
 let currentAccount = null;
 let accountsCache = [];
+let accountModalMode = "add";
+let editingAccountId = null;
 
 function parseRR(rr){
   if(!rr) return 0;
@@ -461,6 +529,12 @@ function sessionFromTime(time){
 function weekdayName(date){
   const d = new Date(date);
   return Number.isNaN(d.getTime()) ? "Unknown" : weekDays[d.getDay()];
+}
+
+function getAccountBadgeClass(type) {
+  if (type === "Prop") return "account-badge badge-prop";
+  if (type === "Real") return "account-badge badge-real";
+  return "account-badge badge-demo";
 }
 
 function buildEquitySeries(hist) {
@@ -558,9 +632,11 @@ async function loadAccounts() {
 function renderAccountMeta() {
   if (!currentAccount) {
     $("accountMeta").textContent = "No account selected";
+    $("accountMeta").className = "account-badge";
     return;
   }
   $("accountMeta").textContent = `${currentAccount.type} • Starting Balance ${money(currentAccount.starting_balance || 0)}`;
+  $("accountMeta").className = getAccountBadgeClass(currentAccount.type);
 }
 
 async function loadTrades() {
@@ -608,32 +684,80 @@ async function deleteTrade(id) {
   renderAll();
 }
 
-async function addAccount() {
-  const name = prompt("Account name?");
-  if (!name) return;
+function openAccountModal(mode, account = null) {
+  accountModalMode = mode;
+  editingAccountId = account ? account.id : null;
+  $("accountModalTitle").textContent = mode === "edit" ? "Edit Account" : "Add Account";
+  $("accountNameInput").value = account?.name || "";
+  $("accountTypeInput").value = account?.type || "Demo";
+  $("accountBalanceInput").value = account?.starting_balance ?? 10000;
+  $("accountModalBackdrop").style.display = "flex";
+}
 
-  const typeInput = prompt("Account type? Enter: Prop, Demo, or Real", "Demo");
-  if (!typeInput) return;
-  const type = String(typeInput).trim();
+function closeAccountModal() {
+  $("accountModalBackdrop").style.display = "none";
+  editingAccountId = null;
+}
 
-  if (!["Prop","Demo","Real"].includes(type)) {
-    alert("Type must be exactly: Prop, Demo, or Real");
+async function saveAccountModal() {
+  const name = $("accountNameInput").value.trim();
+  const type = $("accountTypeInput").value;
+  const starting_balance = Number($("accountBalanceInput").value || 0);
+
+  if (!name) {
+    alert("Please enter an account name.");
     return;
   }
 
-  const balanceInput = prompt("Starting balance?", "10000");
-  const starting_balance = Number(balanceInput || 0);
+  if (accountModalMode === "add") {
+    const { error } = await supabaseClient
+      .from(ACCOUNTS_TABLE)
+      .insert([{ name, type, starting_balance }]);
+
+    if (error) {
+      alert("ADD ACCOUNT ERROR: " + error.message);
+      return;
+    }
+  } else {
+    const { error } = await supabaseClient
+      .from(ACCOUNTS_TABLE)
+      .update({ name, type, starting_balance })
+      .eq("id", editingAccountId);
+
+    if (error) {
+      alert("EDIT ACCOUNT ERROR: " + error.message);
+      return;
+    }
+  }
+
+  await loadAccounts();
+  closeAccountModal();
+  renderAll();
+}
+
+async function deleteCurrentAccount() {
+  if (!currentAccount) return;
+  if (accountsCache.length <= 1) {
+    alert("You need at least one account.");
+    return;
+  }
+
+  const ok = confirm(`Delete account "${currentAccount.name}"? This will also delete all trades linked to it.`);
+  if (!ok) return;
+
+  const deletingId = currentAccount.id;
 
   const { error } = await supabaseClient
     .from(ACCOUNTS_TABLE)
-    .insert([{ name, type, starting_balance }]);
+    .delete()
+    .eq("id", deletingId);
 
   if (error) {
-    console.error("Add account error:", error);
-    alert("ADD ACCOUNT ERROR: " + error.message);
+    alert("DELETE ACCOUNT ERROR: " + error.message);
     return;
   }
 
+  currentAccountId = accountsCache.find(a => a.id !== deletingId)?.id || null;
   await loadAccounts();
   renderAll();
 }
@@ -752,7 +876,7 @@ async function renderAll(){
   const hist = await loadTrades();
 
   $("date").value ||= new Date().toISOString().slice(0,10);
-  if (currentAccount?.starting_balance) {
+  if (currentAccount?.starting_balance != null) {
     $("accountSize").value = currentAccount.starting_balance;
   }
   $("riskAmount").value = ((Number($("accountSize").value || 0) * Number($("riskPercent").value || 0)) / 100).toFixed(2);
@@ -770,6 +894,13 @@ async function renderAll(){
 
   const grossProfit = wins.reduce((s,t) => s + pnl(t), 0);
   const grossLoss = Math.abs(losses.reduce((s,t) => s + pnl(t), 0));
+  const netPnl = trades.reduce((s,t) => s + pnl(t), 0);
+  const startingBalance = Number(currentAccount?.starting_balance || 0);
+  const currentBalance = startingBalance + netPnl;
+
+  $("startingBalance").textContent = money(startingBalance);
+  $("currentBalance").textContent = money(currentBalance);
+  $("netPnl").textContent = money(netPnl);
 
   $("winRate").textContent = (trades.length ? Math.round((wins.length / trades.length) * 100) : 0) + "%";
   $("profitFactor").textContent = (grossLoss > 0 ? grossProfit / grossLoss : grossProfit > 0 ? grossProfit : 0).toFixed(2);
@@ -876,9 +1007,20 @@ $("accountSelector").addEventListener("change", () => {
   renderAll();
 });
 
-$("addAccountBtn").onclick = async () => {
-  await addAccount();
+$("addAccountBtn").onclick = () => openAccountModal("add");
+$("editAccountBtn").onclick = () => {
+  if (!currentAccount) return;
+  openAccountModal("edit", currentAccount);
 };
+$("deleteAccountBtn").onclick = async () => {
+  await deleteCurrentAccount();
+};
+
+$("accountModalCancel").onclick = closeAccountModal;
+$("accountModalSave").onclick = saveAccountModal;
+$("accountModalBackdrop").addEventListener("click", (e) => {
+  if (e.target.id === "accountModalBackdrop") closeAccountModal();
+});
 
 $("saveBtn").onclick = async () => {
   if (!currentAccountId) {
@@ -952,7 +1094,5 @@ async function initApp() {
 
 initApp();
 </script>
-</body>
-</html>
 </body>
 </html>
