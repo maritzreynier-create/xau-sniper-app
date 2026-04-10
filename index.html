@@ -585,9 +585,12 @@
     </select>
   </div>
   <div>
-    <label class="label" for="disciplineScore">Discipline Score /10</label>
-    <input id="disciplineScore" type="number" min="1" max="10" value="8">
+    <label class="label">Auto Discipline Score</label>
+    <input id="disciplineScore" type="number" min="1" max="10" value="8" readonly>
   </div>
+</div>
+
+<div id="disciplineFeedback" class="daytile" style="margin-top:12px"></div>
 </div>
 
 <label class="label" for="ruleBreakReason" style="margin-top:12px">Reason for rule break</label>
@@ -1100,13 +1103,69 @@ function getWarnings(hist){
   return warnings;
 }
 
-function calculateDailyDiscipline(hist) {
+function getDisciplineBand(score){
+  if(score >= 8) return {label:"Locked In", className:"discipline-good"};
+  if(score >= 5) return {label:"Average", className:"discipline-mid"};
+  return {label:"Needs Work", className:"discipline-bad"};
+}
+
+function calculateAutoDiscipline(){
+  let score = 10;
+  const penalties = [];
+
+  if($("followedPlan").value === "No"){
+    score -= 3;
+    penalties.push("Did not follow plan");
+  }
+  if($("brokeRule").value === "Yes"){
+    score -= 3;
+    penalties.push("Broke a rule");
+  }
+  if($("shouldHaveSkipped").value === "Yes"){
+    score -= 2;
+    penalties.push("Should have skipped trade");
+  }
+
+  if(["Fearful","Greedy","Frustrated"].includes(state.emotion)){
+    score -= 1;
+    penalties.push("Bad emotional state");
+  }
+
+  const checklistScore = checklistItems.filter(i => state.checklist[i]).length;
+  if(checklistScore <= 3){
+    score -= 2;
+    penalties.push("Weak checklist");
+  } else if(checklistScore <= 5){
+    score -= 1;
+    penalties.push("Partial checklist");
+  }
+
+  score = Math.max(1, Math.min(10, score));
+  return {score, penalties, band:getDisciplineBand(score)};
+}
+
+function renderDiscipline(){
+  const {score, penalties, band} = calculateAutoDiscipline();
+  $("disciplineScore").value = score;
+
+  const box = $("disciplineFeedback");
+  box.className = score >= 8 ? "safe" : score >= 5 ? "daytile" : "warn";
+
+  box.innerHTML = `
+    <div style="font-weight:700">${band.label} • ${score}/10</div>
+    <div class="small" style="margin-top:6px">
+      ${penalties.length ? penalties.map(p=>`• ${p}`).join("<br>") : "No issues detected"}
+    </div>
+  `;
+}
+
+function calculateDailyDiscipline(hist){
   const dated = hist.filter(t => t.date);
-  if (!dated.length) return 0;
-  const latestDate = [...dated].sort((a,b) => String(b.date).localeCompare(String(a.date)))[0].date;
-  const dayTrades = dated.filter(t => t.date === latestDate && t.disciplineScore != null);
-  if (!dayTrades.length) return 0;
-  return dayTrades.reduce((s,t) => s + Number(t.disciplineScore || 0), 0) / dayTrades.length;
+  if(!dated.length) return 0;
+  const latest = dated[0].date;
+  const dayTrades = dated.filter(t => t.date === latest && t.disciplineScore != null);
+  if(!dayTrades.length) return 0;
+  return dayTrades.reduce((s,t)=>s+Number(t.disciplineScore||0),0)/dayTrades.length;
 }
 
 function calculateAverageRRR(hist) {
@@ -1292,6 +1351,7 @@ function renderAll(){
   renderPills("emotionPills", emotions, state.emotion, v => state.emotion = v);
   renderPills("newsOutcomePills", newsOutcomes, state.newsOutcome, v => state.newsOutcome = v);
   renderChecklist();
+  renderDiscipline();
   renderEquityChart(hist);
 
   const trades = hist.filter(t => t.result !== "No Trade");
@@ -1390,7 +1450,7 @@ function renderAll(){
 $("result").innerHTML = resultOptions.map(x => `<option>${x}</option>`).join("");
 $("date").value = new Date().toISOString().slice(0,10);
 
-["accountSize","riskPercent","rr","time","confidence","pair","disciplineScore"].forEach(id => {
+["accountSize","riskPercent","rr","time","confidence","pair","followedPlan","brokeRule","shouldHaveSkipped"].forEach(id => {
   $(id).addEventListener("input", () => {
     if (id === "accountSize" && isHydratingAccountInputs) return;
     renderAll();
@@ -1468,7 +1528,7 @@ $("saveBtn").onclick = async () => {
     brokeRule: $("brokeRule").value,
     ruleBreakReason: $("ruleBreakReason").value,
     shouldHaveSkipped: $("shouldHaveSkipped").value,
-    disciplineScore: $("disciplineScore").value ? Number($("disciplineScore").value) : null
+    disciplineScore: Number($("disciplineScore").value)
   };
 
   const saveResult = await saveTradeToCloud(trade);
@@ -1516,6 +1576,7 @@ initApp();
 
 
   
+
 
 
 
