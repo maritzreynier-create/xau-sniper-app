@@ -264,9 +264,13 @@
     </div>
   </div>
 
+  <div class="grid3">
+    <div class="card"><div class="label">Win Rate</div><div class="value-small" id="winRate">0%</div></div>
+    <div class="card"><div class="label">Profit Factor</div><div class="value-small" id="profitFactor">0.00</div></div>
+    <div class="card"><div class="label">Daily Discipline</div><div class="value-small" id="dailyDiscipline">0.0</div></div>
+  </div>
+
   <div class="grid2">
-    <div class="card"><div class="label">Win Rate</div><div class="value" id="winRate">0%</div></div>
-    <div class="card"><div class="label">Profit Factor</div><div class="value" id="profitFactor">0.00</div></div>
     <div class="card"><div class="label">Avg Win</div><div class="value" id="avgWin">$0.00</div></div>
     <div class="card"><div class="label">Avg Loss</div><div class="value" id="avgLoss">$0.00</div></div>
   </div>
@@ -388,6 +392,45 @@
     <div id="checklist"></div>
 
     <div id="warningsBox" class="daytile" style="margin-top:10px"></div>
+  </div>
+
+  <div class="card">
+    <div class="section-title">Discipline Review</div>
+    <p class="section-sub">Behavioral feedback that builds consistency.</p>
+
+    <div class="row">
+      <div>
+        <label class="label" for="followedPlan">Did I follow my plan?</label>
+        <select id="followedPlan">
+          <option value="Yes">Yes</option>
+          <option value="No">No</option>
+        </select>
+      </div>
+      <div>
+        <label class="label" for="brokeRule">Did I break a rule?</label>
+        <select id="brokeRule">
+          <option value="No">No</option>
+          <option value="Yes">Yes</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="row" style="margin-top:12px">
+      <div>
+        <label class="label" for="shouldHaveSkipped">Should I have skipped this trade?</label>
+        <select id="shouldHaveSkipped">
+          <option value="No">No</option>
+          <option value="Yes">Yes</option>
+        </select>
+      </div>
+      <div>
+        <label class="label" for="disciplineScore">Discipline Score /10</label>
+        <input id="disciplineScore" type="number" min="1" max="10" value="8">
+      </div>
+    </div>
+
+    <label class="label" for="ruleBreakReason" style="margin-top:12px">Reason for rule break</label>
+    <textarea id="ruleBreakReason" placeholder="FOMO, overtrading, revenge, ignored setup rules..."></textarea>
   </div>
 
   <div class="card">
@@ -581,15 +624,9 @@ function renderEquityChart(hist) {
       maintainAspectRatio: false,
       plugins: { legend: { display: false } },
       scales: {
-        x: {
-          ticks: { color: "#94a3b8" },
-          grid: { color: "rgba(148,163,184,0.08)" }
-        },
+        x: { ticks: { color: "#94a3b8" }, grid: { color: "rgba(148,163,184,0.08)" } },
         y: {
-          ticks: {
-            color: "#94a3b8",
-            callback: function(value) { return "$" + value; }
-          },
+          ticks: { color: "#94a3b8", callback: function(value) { return "$" + value; } },
           grid: { color: "rgba(148,163,184,0.08)" }
         }
       }
@@ -604,14 +641,13 @@ async function loadAccounts() {
     .order("created_at", { ascending: true });
 
   if (error) {
-    console.error("Accounts load error:", error);
     alert("ACCOUNTS ERROR: " + error.message);
     return;
   }
 
   accountsCache = data || [];
   if (!accountsCache.length) {
-    alert("No accounts found. Please run Part A again or add starter accounts.");
+    alert("No accounts found.");
     return;
   }
 
@@ -649,7 +685,6 @@ async function loadTrades() {
     .order("date", { ascending: false });
 
   if (error) {
-    console.error("Load error:", error);
     alert("LOAD ERROR: " + error.message);
     return [];
   }
@@ -657,16 +692,12 @@ async function loadTrades() {
 }
 
 async function saveTradeToCloud(trade) {
-  const { data, error } = await supabaseClient
+  const { error } = await supabaseClient
     .from(TRADES_TABLE)
-    .insert([trade])
-    .select();
+    .insert([trade]);
 
   if (error) {
-    console.error("Save error:", error);
     alert("SAVE ERROR: " + error.message);
-  } else {
-    console.log("SAVE RESULT:", data);
   }
 }
 
@@ -677,7 +708,6 @@ async function deleteTrade(id) {
     .eq("id", id);
 
   if (error) {
-    console.error("Delete error:", error);
     alert("DELETE ERROR: " + error.message);
   }
 
@@ -713,7 +743,6 @@ async function saveAccountModal() {
     const { error } = await supabaseClient
       .from(ACCOUNTS_TABLE)
       .insert([{ name, type, starting_balance }]);
-
     if (error) {
       alert("ADD ACCOUNT ERROR: " + error.message);
       return;
@@ -723,7 +752,6 @@ async function saveAccountModal() {
       .from(ACCOUNTS_TABLE)
       .update({ name, type, starting_balance })
       .eq("id", editingAccountId);
-
     if (error) {
       alert("EDIT ACCOUNT ERROR: " + error.message);
       return;
@@ -746,7 +774,6 @@ async function deleteCurrentAccount() {
   if (!ok) return;
 
   const deletingId = currentAccount.id;
-
   const { error } = await supabaseClient
     .from(ACCOUNTS_TABLE)
     .delete()
@@ -822,10 +849,7 @@ function getBestRRHour(hist){
     grouped[h].rr += parseRR(t.rr);
     grouped[h].count += 1;
   });
-  const arr = Object.values(grouped).map(x => ({
-    ...x,
-    avgRR: x.count ? x.rr / x.count : 0
-  }));
+  const arr = Object.values(grouped).map(x => ({...x, avgRR: x.count ? x.rr / x.count : 0}));
   if(!arr.length) return null;
   arr.sort((a,b) => b.avgRR - a.avgRR);
   return arr[0];
@@ -869,6 +893,16 @@ function getWarnings(hist){
   return warnings;
 }
 
+function calculateDailyDiscipline(hist) {
+  const dated = hist.filter(t => t.date);
+  if (!dated.length) return 0;
+  const latestDate = [...dated].sort((a,b) => String(b.date).localeCompare(String(a.date)))[0].date;
+  const dayTrades = dated.filter(t => t.date === latestDate && t.disciplineScore != null);
+  if (!dayTrades.length) return 0;
+  const avg = dayTrades.reduce((s,t) => s + Number(t.disciplineScore || 0), 0) / dayTrades.length;
+  return avg;
+}
+
 async function renderAll(){
   currentAccount = accountsCache.find(x => x.id === currentAccountId) || null;
   renderAccountMeta();
@@ -897,10 +931,12 @@ async function renderAll(){
   const netPnl = trades.reduce((s,t) => s + pnl(t), 0);
   const startingBalance = Number(currentAccount?.starting_balance || 0);
   const currentBalance = startingBalance + netPnl;
+  const dailyDiscipline = calculateDailyDiscipline(hist);
 
   $("startingBalance").textContent = money(startingBalance);
   $("currentBalance").textContent = money(currentBalance);
   $("netPnl").textContent = money(netPnl);
+  $("dailyDiscipline").textContent = dailyDiscipline.toFixed(1);
 
   $("winRate").textContent = (trades.length ? Math.round((wins.length / trades.length) * 100) : 0) + "%";
   $("profitFactor").textContent = (grossLoss > 0 ? grossProfit / grossLoss : grossProfit > 0 ? grossProfit : 0).toFixed(2);
@@ -925,9 +961,7 @@ async function renderAll(){
 
   $("warningsBox").innerHTML =
     `<div style="font-weight:700;margin-bottom:6px">${danger ? "Do not trade" : "Wait / valid depending on context"}</div>` +
-    (warnings.length
-      ? warnings.map(w => `<div class="small">• ${w}</div>`).join("")
-      : `<div class="small">No active warnings.</div>`);
+    (warnings.length ? warnings.map(w => `<div class="small">• ${w}</div>`).join("") : `<div class="small">No active warnings.</div>`);
 
   $("warningsBox").className = danger ? "warn" : "safe";
 
@@ -957,9 +991,7 @@ async function renderAll(){
     : `<div class="muted">Add timed trades to unlock this section.</div>`;
 
   const groupedDays = {};
-  hist.forEach(t => {
-    groupedDays[t.date] = (groupedDays[t.date] || 0) + pnl(t);
-  });
+  hist.forEach(t => { groupedDays[t.date] = (groupedDays[t.date] || 0) + pnl(t); });
 
   const dayArr = Object.entries(groupedDays).sort((a,b) => a[0].localeCompare(b[0]));
   $("calendar").innerHTML = dayArr.length
@@ -979,7 +1011,8 @@ async function renderAll(){
             <div style="font-weight:700">${t.date || "—"} • ${t.pair || "—"} • ${t.setup || "—"}</div>
             <div class="small">${t.result || "—"} • ${t.rr || "—"} • ${money(pnl(t))}</div>
             <div class="small">${t.time || "—"} • ${t.session || "Unknown"} • ${t.weekday || "Unknown"}</div>
-            <div class="small">News: ${t.news || "None"} • ${t.newsOutcome || "—"}</div>
+            <div class="small">Discipline: ${t.disciplineScore ?? "—"}/10 • Followed Plan: ${t.followedPlan || "—"}</div>
+            <div class="small">Rule Break: ${t.brokeRule || "—"} ${t.ruleBreakReason ? "• " + t.ruleBreakReason : ""}</div>
           </div>
           <button class="pill" type="button" onclick="deleteTrade('${String(t.id)}')">Delete</button>
         </div>
@@ -991,7 +1024,7 @@ async function renderAll(){
 $("result").innerHTML = resultOptions.map(x => `<option>${x}</option>`).join("");
 $("date").value = new Date().toISOString().slice(0,10);
 
-["accountSize","riskPercent","rr","time","confidence","pair"].forEach(id => {
+["accountSize","riskPercent","rr","time","confidence","pair","disciplineScore"].forEach(id => {
   $(id).addEventListener("input", renderAll);
   $(id).addEventListener("change", renderAll);
 });
@@ -1055,7 +1088,12 @@ $("saveBtn").onclick = async () => {
     confidence: $("confidence").value ? Number($("confidence").value) : null,
     notes: $("reviewNotes").value,
     session: sessionFromTime($("time").value),
-    weekday: weekdayName($("date").value)
+    weekday: weekdayName($("date").value),
+    followedPlan: $("followedPlan").value,
+    brokeRule: $("brokeRule").value,
+    ruleBreakReason: $("ruleBreakReason").value,
+    shouldHaveSkipped: $("shouldHaveSkipped").value,
+    disciplineScore: $("disciplineScore").value ? Number($("disciplineScore").value) : null
   };
 
   await saveTradeToCloud(trade);
@@ -1068,6 +1106,11 @@ $("saveBtn").onclick = async () => {
   $("newsNotes").value = "";
   $("reviewNotes").value = "";
   $("time").value = "";
+  $("ruleBreakReason").value = "";
+  $("followedPlan").value = "Yes";
+  $("brokeRule").value = "No";
+  $("shouldHaveSkipped").value = "No";
+  $("disciplineScore").value = "8";
 
   state.bias = "Wait";
   state.setup = setupOptions[0];
