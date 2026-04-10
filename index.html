@@ -2,69 +2,186 @@
 <html lang="en">
 <head>
   <link rel="manifest" href="/manifest.json">
-  <meta name="theme-color" content="#000000">
+  <meta name="theme-color" content="#0f172a">
   <link rel="apple-touch-icon" href="/icon-192.png">
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Trading Dashboard</title>
+  <title>SteadyMind Journal</title>
   <style>
-    :root{--bg:#f5f5f5;--card:#fff;--text:#111;--muted:#666;--border:#d9d9d9}
+    :root{
+      --bg:#020617;
+      --panel:#0f172a;
+      --panel-2:#111827;
+      --card:#0b1220;
+      --text:#e5e7eb;
+      --muted:#94a3b8;
+      --border:#1f2937;
+      --green:#22c55e;
+      --green-2:#16a34a;
+      --green-3:#14532d;
+      --danger:#ef4444;
+      --flat:#334155;
+    }
     *{box-sizing:border-box}
-    body{margin:0;font-family:Arial,Helvetica,sans-serif;background:var(--bg);color:var(--text)}
+    body{
+      margin:0;
+      font-family:Arial,Helvetica,sans-serif;
+      background:linear-gradient(180deg,#020617 0%, #08111f 100%);
+      color:var(--text);
+    }
     .wrap{max-width:560px;margin:0 auto;padding:16px}
-    .title{font-size:28px;font-weight:700;margin:4px 0}
-    .sub{color:var(--muted);font-size:14px;margin:0 0 14px}
+    .brand-kicker{
+      color:var(--green);
+      font-size:12px;
+      letter-spacing:.18em;
+      text-transform:uppercase;
+      margin-bottom:8px;
+    }
+    .title{font-size:30px;font-weight:800;margin:0 0 4px}
+    .sub{color:var(--muted);font-size:14px;margin:0 0 16px}
     .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-    .card{background:var(--card);border:1px solid var(--border);border-radius:24px;padding:14px;margin-bottom:12px}
+    .card{
+      background:rgba(15,23,42,.92);
+      border:1px solid var(--border);
+      border-radius:24px;
+      padding:14px;
+      margin-bottom:12px;
+      box-shadow:0 10px 30px rgba(0,0,0,.25);
+    }
     .label{font-size:12px;color:var(--muted);margin-bottom:6px;display:block}
-    .value{font-size:28px;font-weight:700}
-    .section-title{font-size:16px;font-weight:700;margin:0 0 4px}
+    .value{font-size:28px;font-weight:800}
+    .section-title{font-size:16px;font-weight:800;margin:0 0 4px}
     .section-sub{font-size:13px;color:var(--muted);margin:0 0 12px}
     input,textarea,select{
-      width:100%;padding:11px 12px;border:1px solid var(--border);border-radius:16px;
-      background:#fff;color:#111;font-size:14px
+      width:100%;
+      padding:11px 12px;
+      border:1px solid var(--border);
+      border-radius:16px;
+      background:var(--panel-2);
+      color:var(--text);
+      font-size:14px;
+      outline:none;
+    }
+    input:focus,textarea:focus,select:focus{
+      border-color:var(--green);
+      box-shadow:0 0 0 3px rgba(34,197,94,.15);
     }
     textarea{min-height:92px;resize:vertical}
     .row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
     .row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
     .pills{display:flex;flex-wrap:wrap;gap:8px}
     .pill{
-      border:1px solid var(--border);background:#fff;color:#111;border-radius:16px;
-      padding:9px 12px;font-size:13px;cursor:pointer
+      border:1px solid var(--border);
+      background:var(--panel-2);
+      color:var(--text);
+      border-radius:16px;
+      padding:9px 12px;
+      font-size:13px;
+      cursor:pointer;
+      transition:.2s ease;
     }
-    .pill.active{background:#111;color:#fff;border-color:#111}
+    .pill.active{
+      background:var(--green);
+      color:#03130a;
+      border-color:var(--green);
+      font-weight:700;
+    }
     .check{
-      display:flex;justify-content:space-between;align-items:center;padding:12px;
-      border:1px solid var(--border);border-radius:18px;margin-bottom:8px;cursor:pointer
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      padding:12px;
+      border:1px solid var(--border);
+      border-radius:18px;
+      margin-bottom:8px;
+      cursor:pointer;
+      background:var(--panel-2);
+      transition:.2s ease;
     }
-    .check.active{background:#111;color:#fff;border-color:#111}
+    .check.active{
+      background:rgba(34,197,94,.14);
+      color:#dcfce7;
+      border-color:rgba(34,197,94,.45);
+    }
     .btn{
-      width:100%;padding:13px;border:none;border-radius:18px;background:#111;
-      color:#fff;font-weight:700;cursor:pointer
+      width:100%;
+      padding:13px;
+      border:none;
+      border-radius:18px;
+      background:linear-gradient(90deg,var(--green),var(--green-2));
+      color:#03130a;
+      font-weight:800;
+      cursor:pointer;
     }
-    .btn.secondary{background:#fff;color:#111;border:1px solid var(--border)}
+    .btn.secondary{
+      background:var(--panel-2);
+      color:var(--text);
+      border:1px solid var(--border);
+    }
     .btn:disabled{opacity:.5;cursor:not-allowed}
-    .warn{background:#111;color:#fff;border-radius:18px;padding:12px}
+    .warn{
+      background:rgba(239,68,68,.12);
+      color:#fecaca;
+      border:1px solid rgba(239,68,68,.3);
+      border-radius:18px;
+      padding:12px;
+    }
+    .safe{
+      background:rgba(34,197,94,.10);
+      color:#dcfce7;
+      border:1px solid rgba(34,197,94,.3);
+      border-radius:18px;
+      padding:12px;
+    }
     .muted{color:var(--muted);font-size:13px}
     .mini{font-size:12px;color:var(--muted)}
-    .history-item{border:1px solid var(--border);border-radius:18px;padding:12px;margin-bottom:8px}
+    .history-item{
+      border:1px solid var(--border);
+      background:var(--panel-2);
+      border-radius:18px;
+      padding:12px;
+      margin-bottom:8px
+    }
     .topline{display:flex;justify-content:space-between;gap:8px;align-items:center}
     .bars .barrow{margin:10px 0}
     .barlabel{display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px;color:var(--muted)}
-    .barbg{background:#eaeaea;border-radius:999px;height:12px;overflow:hidden}
-    .barfill{background:#111;height:100%}
+    .barbg{background:#1f2937;border-radius:999px;height:12px;overflow:hidden}
+    .barfill{background:linear-gradient(90deg,var(--green),var(--green-2));height:100%}
     .calendar{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-    .daytile{border:1px solid var(--border);border-radius:18px;padding:10px}
-    .neg{background:#111;color:#fff}
-    .flat{background:#efefef}
+    .daytile{
+      border:1px solid var(--border);
+      border-radius:18px;
+      padding:10px;
+      background:var(--panel-2);
+    }
+    .neg{
+      background:rgba(239,68,68,.12);
+      color:#fee2e2;
+      border-color:rgba(239,68,68,.25);
+    }
+    .flat{
+      background:rgba(51,65,85,.45);
+    }
+    .positive{
+      background:rgba(34,197,94,.10);
+      border-color:rgba(34,197,94,.25);
+    }
     .small{font-size:12px}
+    .accent-line{
+      height:3px;
+      width:92px;
+      border-radius:999px;
+      background:linear-gradient(90deg,var(--green),transparent);
+      margin:10px 0 18px;
+    }
   </style>
 </head>
 <body>
 <div class="wrap">
-  <div class="mini">Elite Mobile Tracker</div>
-  <div class="title">XAUUSD Sniper Dashboard</div>
-  <p class="sub">Mobile-ready trading tracker with edge lock, stats, time analysis, and cloud sync.</p>
+  <div class="brand-kicker">SteadyMind</div>
+  <div class="title">SteadyMind Journal</div>
+  <p class="sub">Built for Psychology. Driven by Discipline.</p>
+  <div class="accent-line"></div>
 
   <div class="grid2">
     <div class="card"><div class="label">Win Rate</div><div class="value" id="winRate">0%</div></div>
@@ -75,12 +192,17 @@
 
   <div class="card">
     <div class="section-title">Trade Input</div>
-    <p class="section-sub">Auto risk calculator and edge-aware logging</p>
+    <p class="section-sub">Fast journaling with clean execution tracking.</p>
 
     <div class="row">
       <div>
-        <label class="label" for="pair">Pair</label>
-        <input id="pair" value="XAUUSD">
+        <label class="label" for="pair">Asset</label>
+        <select id="pair">
+          <option value="XAUUSD">XAUUSD - Gold</option>
+          <option value="NAS100">NAS100</option>
+          <option value="US30">US30</option>
+          <option value="US500">US500</option>
+        </select>
       </div>
       <div>
         <label class="label" for="date">Date</label>
@@ -145,12 +267,12 @@
 
   <div class="card">
     <div class="section-title">Edge Lock</div>
-    <p class="section-sub">Use your own data to block low-quality entries</p>
+    <p class="section-sub">Blocks saves outside your best hour or during heavy warnings.</p>
 
     <div class="topline">
       <div>
         <div style="font-weight:700">Edge lock status</div>
-        <div class="mini">Blocks saves outside your best hour or during heavy warnings</div>
+        <div class="mini">Behavior control before performance tracking.</div>
       </div>
       <button class="pill" id="edgeLockBtn" type="button"></button>
     </div>
@@ -165,7 +287,7 @@
 
   <div class="card">
     <div class="section-title">Do Not Trade Filter</div>
-    <p class="section-sub">Checklist + emotion gate</p>
+    <p class="section-sub">Checklist + emotion gate before entry.</p>
 
     <label class="label">Emotion Before</label>
     <div class="pills" id="emotionPills"></div>
@@ -181,7 +303,7 @@
 
   <div class="card">
     <div class="section-title">News Context</div>
-    <p class="section-sub">Track the event and whether it was bullish or bearish</p>
+    <p class="section-sub">Track the event and how it shaped the trade.</p>
 
     <label class="label" for="newsEvent">Event</label>
     <input id="newsEvent" placeholder="CPI, FOMC, NFP...">
@@ -190,19 +312,19 @@
     <div class="pills" id="newsOutcomePills"></div>
 
     <label class="label" style="margin-top:12px" for="newsNotes">Notes</label>
-    <textarea id="newsNotes" placeholder="What was the news and how did gold react?"></textarea>
+    <textarea id="newsNotes" placeholder="What was the news and how did price react?"></textarea>
   </div>
 
   <div class="card">
     <div class="section-title">Review Notes</div>
-    <p class="section-sub">Execution, discipline, mistakes</p>
+    <p class="section-sub">Execution, discipline, mistakes.</p>
     <textarea id="reviewNotes" placeholder="What went well? What did I force?"></textarea>
     <button id="saveBtn" class="btn" style="margin-top:12px" type="button">Save Trade</button>
   </div>
 
   <div class="card">
     <div class="section-title">Time Performance</div>
-    <p class="section-sub">See when you are most profitable</p>
+    <p class="section-sub">See when you are most profitable.</p>
     <div class="row">
       <div class="daytile"><div class="small">Best P&L Hour</div><div id="bestHour" style="font-weight:700;font-size:20px">—</div></div>
       <div class="daytile"><div class="small">Best R:R Hour</div><div id="bestRRHour" style="font-weight:700;font-size:20px">—</div></div>
@@ -212,13 +334,13 @@
 
   <div class="card">
     <div class="section-title">P&L Calendar</div>
-    <p class="section-sub">Daily result tiles</p>
+    <p class="section-sub">Daily result tiles.</p>
     <div class="calendar" id="calendar"></div>
   </div>
 
   <div class="card">
     <div class="section-title">Trade History</div>
-    <p class="section-sub">Recent saved entries</p>
+    <p class="section-sub">Recent saved entries.</p>
     <div id="history"></div>
     <button id="exportBtn" class="btn secondary" style="margin-top:12px" type="button">Export JSON Backup</button>
   </div>
@@ -229,7 +351,6 @@
 const SUPABASE_URL = "https://jreasuuibdkescqsmabu.supabase.co";
 const SUPABASE_KEY = "sb_publishable_ihBmxcaFvdGimh2R5VsuzA_w6SflTxU";
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
 const TABLE_NAME = "trades";
 
 const biasOptions = ["Buy","Sell","Wait"];
@@ -299,7 +420,6 @@ async function loadTrades() {
     console.error("Load error:", error);
     return [];
   }
-
   return data || [];
 }
 
@@ -487,7 +607,7 @@ async function renderAll(){
       ? warnings.map(w => `<div class="small">• ${w}</div>`).join("")
       : `<div class="small">No active warnings.</div>`);
 
-  $("warningsBox").className = danger ? "warn" : "daytile";
+  $("warningsBox").className = danger ? "warn" : "safe";
 
   const lossStreak = getLossStreak(hist);
   $("lossWarning").style.display = lossStreak >= 2 ? "block" : "none";
@@ -522,7 +642,7 @@ async function renderAll(){
   const dayArr = Object.entries(groupedDays).sort((a,b) => a[0].localeCompare(b[0]));
   $("calendar").innerHTML = dayArr.length
     ? dayArr.map(([d,v]) => `
-      <div class="${v > 0 ? "daytile" : v < 0 ? "daytile neg" : "daytile flat"}">
+      <div class="${v > 0 ? "daytile positive" : v < 0 ? "daytile neg" : "daytile flat"}">
         <div class="small">${d}</div>
         <div style="font-size:20px;font-weight:700;margin-top:4px">${money(v)}</div>
       </div>
@@ -534,7 +654,7 @@ async function renderAll(){
       <div class="history-item">
         <div class="topline">
           <div>
-            <div style="font-weight:700">${t.date || "—"} • ${t.setup || "—"}</div>
+            <div style="font-weight:700">${t.date || "—"} • ${t.pair || "—"} • ${t.setup || "—"}</div>
             <div class="small">${t.result || "—"} • ${t.rr || "—"} • ${money(pnl(t))}</div>
             <div class="small">${t.time || "—"} • ${t.session || "Unknown"} • ${t.weekday || "Unknown"}</div>
             <div class="small">News: ${t.news || "None"} • ${t.newsOutcome || "—"}</div>
@@ -549,8 +669,9 @@ async function renderAll(){
 $("result").innerHTML = resultOptions.map(x => `<option>${x}</option>`).join("");
 $("date").value = new Date().toISOString().slice(0,10);
 
-["accountSize","riskPercent","rr","time","confidence"].forEach(id => {
+["accountSize","riskPercent","rr","time","confidence","pair"].forEach(id => {
   $(id).addEventListener("input", renderAll);
+  $(id).addEventListener("change", renderAll);
 });
 
 $("edgeLockBtn").onclick = () => {
@@ -613,7 +734,7 @@ $("exportBtn").onclick = async () => {
   const blob = new Blob([JSON.stringify(trades, null, 2)], { type: "application/json" });
   const a = document.createElement("a");
   a.href = URL.createObjectURL(blob);
-  a.download = "xauusd-sniper-backup.json";
+  a.download = "steadymind-journal-backup.json";
   a.click();
 };
 
