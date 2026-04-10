@@ -1,5 +1,4 @@
-<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html><html lang="en">
 <head>
   <link rel="manifest" href="/manifest.json">
   <meta name="theme-color" content="#0f172a">
@@ -158,10 +157,86 @@
     .barlabel{display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px;color:var(--muted)}
     .barbg{background:#1f2937;border-radius:999px;height:12px;overflow:hidden}
     .barfill{background:linear-gradient(90deg,var(--green),#16a34a);height:100%}
-    .calendar{
-      display:grid;
-      grid-template-columns:1fr 1fr;
+    .calendar-toolbar{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
       gap:8px;
+      margin-bottom:10px;
+    }
+    .calendar-month-label{
+      font-size:16px;
+      font-weight:800;
+    }
+    .calendar-grid{
+      display:grid;
+      grid-template-columns:repeat(7, minmax(0, 1fr));
+      gap:8px;
+    }
+    .calendar-head{
+      text-align:center;
+      font-size:11px;
+      color:var(--muted);
+      padding:4px 0;
+      text-transform:uppercase;
+      letter-spacing:.06em;
+    }
+    .calendar-day{
+      border:1px solid var(--border);
+      border-radius:18px;
+      padding:10px;
+      background:var(--panel-2);
+      min-height:110px;
+      cursor:pointer;
+      transition:.2s ease;
+    }
+    .calendar-day:hover{
+      border-color:rgba(34,197,94,.35);
+      transform:translateY(-1px);
+    }
+    .calendar-day.empty{
+      background:rgba(15,23,42,.35);
+      border-style:dashed;
+      cursor:default;
+    }
+    .calendar-day.empty:hover{
+      transform:none;
+      border-color:var(--border);
+    }
+    .calendar-day.selected{
+      box-shadow:0 0 0 2px rgba(34,197,94,.35) inset;
+      border-color:rgba(34,197,94,.5);
+    }
+    .calendar-day.today{
+      outline:1px solid rgba(59,130,246,.45);
+    }
+    .calendar-date{
+      font-size:12px;
+      color:var(--muted);
+      margin-bottom:8px;
+      font-weight:700;
+    }
+    .calendar-pnl{
+      font-size:16px;
+      font-weight:800;
+      margin-top:4px;
+    }
+    .calendar-trades{
+      font-size:11px;
+      color:var(--muted);
+      margin-top:6px;
+    }
+    .calendar-summary{
+      margin-top:12px;
+      border:1px solid var(--border);
+      border-radius:18px;
+      padding:12px;
+      background:var(--panel-2);
+    }
+    .calendar-summary-item{
+      border-top:1px solid var(--border);
+      padding-top:8px;
+      margin-top:8px;
     }
     .daytile{
       border:1px solid var(--border);
@@ -235,9 +310,7 @@
   <div class="brand-kicker">SteadyMind</div>
   <div class="title">SteadyMind Journal</div>
   <p class="sub">Built for Psychology. Driven by Discipline.</p>
-  <div class="accent-line"></div>
-
-  <div class="card">
+  <div class="accent-line"></div>  <div class="card">
     <div class="section-title">Account</div>
     <p class="section-sub">Each account has its own history, stats, and equity curve.</p>
     <div class="account-row">
@@ -252,9 +325,7 @@
         <button id="deleteAccountBtn" class="btn danger small" type="button">Delete</button>
       </div>
     </div>
-  </div>
-
-  <div class="grid3">
+  </div>  <div class="grid3">
     <div class="card">
       <div class="label">Starting Balance</div>
       <div class="value-small" id="startingBalance">$0.00</div>
@@ -267,212 +338,185 @@
       <div class="label">Net P&L</div>
       <div class="value-small" id="netPnl">$0.00</div>
     </div>
-  </div>
-
-  <div class="grid3">
+  </div>  <div class="grid3">
     <div class="card"><div class="label">Win Rate</div><div class="value-small" id="winRate">0%</div></div>
     <div class="card"><div class="label">Profit Factor</div><div class="value-small" id="profitFactor">0.00</div></div>
     <div class="card"><div class="label">Daily Discipline</div><div class="value-small" id="dailyDiscipline">0.0</div></div>
-  </div>
-
-  <div class="grid2">
+  </div>  <div class="grid2">
     <div class="card"><div class="label">Avg Win</div><div class="value" id="avgWin">$0.00</div></div>
     <div class="card"><div class="label">Avg Loss</div><div class="value" id="avgLoss">$0.00</div></div>
-  </div>
-
-  <div class="grid2">
+  </div>  <div class="grid2">
     <div class="card"><div class="label">Average RRR</div><div class="value-small" id="avgRRR">0.00R</div></div>
     <div class="card"><div class="label">Sharpe Ratio</div><div class="value-small" id="sharpeRatio">0.00</div></div>
-  </div>
-
-  <div class="card">
+  </div>  <div class="card">
     <div class="section-title">Equity Curve</div>
     <p class="section-sub">Track cumulative performance over time.</p>
     <div class="chart-wrap">
       <canvas id="equityChart"></canvas>
     </div>
-  </div>
-
-  <div class="card">
+  </div>  <div class="card">
     <div class="section-title">Trade Input</div>
-    <p class="section-sub">Fast journaling with clean execution tracking.</p>
-
-    <div class="row">
-      <div>
-        <label class="label" for="pair">Asset</label>
-        <select id="pair">
-          <option value="XAUUSD">XAUUSD - Gold</option>
-          <option value="NAS100">NAS100</option>
-          <option value="US30">US30</option>
-          <option value="US500">US500</option>
-        </select>
-      </div>
-      <div>
-        <label class="label" for="date">Date</label>
-        <input id="date" type="date">
-      </div>
-    </div>
-
-    <div class="row" style="margin-top:12px">
-      <div>
-        <label class="label" for="accountSize">Account Size</label>
-        <input id="accountSize" type="number" value="10000">
-      </div>
-      <div>
-        <label class="label" for="riskPercent">Risk %</label>
-        <input id="riskPercent" type="number" step="0.1" value="1">
-      </div>
-    </div>
-
-    <div class="row" style="margin-top:12px">
-      <div>
-        <label class="label" for="riskAmount">Risk Amount</label>
-        <input id="riskAmount" readonly>
-      </div>
-      <div>
-        <label class="label" for="rr">R:R</label>
-        <input id="rr" value="1:3">
-      </div>
-    </div>
-
-    <label class="label" style="margin-top:12px">Bias</label>
-    <div class="pills" id="biasPills"></div>
-
-    <label class="label" style="margin-top:12px">Setup</label>
-    <div class="pills" id="setupPills"></div>
-
-    <div class="row3" style="margin-top:12px">
-      <div>
-        <label class="label" for="time">Time</label>
-        <input id="time" type="time">
-      </div>
-      <div>
-        <label class="label" for="entry">Entry</label>
-        <input id="entry" type="number" step="0.01">
-      </div>
-      <div>
-        <label class="label" for="result">Result</label>
-        <select id="result"></select>
-      </div>
-    </div>
-
-    <div class="row" style="margin-top:12px">
-      <div>
-        <label class="label" for="lotSize">Lot Size</label>
-        <input id="lotSize" type="number" step="0.01" placeholder="0.50">
-      </div>
-      <div>
-        <label class="label" for="sl">SL</label>
-        <input id="sl" type="number" step="0.01">
-      </div>
-    </div>
-
-    <div class="row" style="margin-top:12px">
-      <div>
-        <label class="label" for="tp">TP</label>
-        <input id="tp" type="number" step="0.01">
-      </div>
-      <div></div>
-    </div>
+    <p class="section-sub">Fast journaling with clean execution tracking.</p><div class="row">
+  <div>
+    <label class="label" for="pair">Asset</label>
+    <select id="pair">
+      <option value="XAUUSD">XAUUSD - Gold</option>
+      <option value="NAS100">NAS100</option>
+      <option value="US30">US30</option>
+      <option value="US500">US500</option>
+    </select>
   </div>
+  <div>
+    <label class="label" for="date">Date</label>
+    <input id="date" type="date">
+  </div>
+</div>
 
-  <div class="card">
+<div class="row" style="margin-top:12px">
+  <div>
+    <label class="label" for="accountSize">Account Size</label>
+    <input id="accountSize" type="number" value="10000">
+  </div>
+  <div>
+    <label class="label" for="riskPercent">Risk %</label>
+    <input id="riskPercent" type="number" step="0.1" value="1">
+  </div>
+</div>
+
+<div class="row" style="margin-top:12px">
+  <div>
+    <label class="label" for="riskAmount">Risk Amount</label>
+    <input id="riskAmount" readonly>
+  </div>
+  <div>
+    <label class="label" for="rr">R:R</label>
+    <input id="rr" value="1:3">
+  </div>
+</div>
+
+<label class="label" style="margin-top:12px">Bias</label>
+<div class="pills" id="biasPills"></div>
+
+<label class="label" style="margin-top:12px">Setup</label>
+<div class="pills" id="setupPills"></div>
+
+<div class="row3" style="margin-top:12px">
+  <div>
+    <label class="label" for="time">Time</label>
+    <input id="time" type="time">
+  </div>
+  <div>
+    <label class="label" for="entry">Entry</label>
+    <input id="entry" type="number" step="0.01">
+  </div>
+  <div>
+    <label class="label" for="result">Result</label>
+    <select id="result"></select>
+  </div>
+</div>
+
+<div class="row" style="margin-top:12px">
+  <div>
+    <label class="label" for="lotSize">Lot Size</label>
+    <input id="lotSize" type="number" step="0.01" placeholder="0.50">
+  </div>
+  <div>
+    <label class="label" for="sl">SL</label>
+    <input id="sl" type="number" step="0.01">
+  </div>
+</div>
+
+<div class="row" style="margin-top:12px">
+  <div>
+    <label class="label" for="tp">TP</label>
+    <input id="tp" type="number" step="0.01">
+  </div>
+  <div></div>
+</div>
+
+  </div>  <div class="card">
     <div class="section-title">Edge Lock</div>
-    <p class="section-sub">Blocks saves outside your best hour or during heavy warnings.</p>
-
-    <div class="topline">
-      <div>
-        <div style="font-weight:700">Edge lock status</div>
-        <div class="mini">Behavior control before performance tracking.</div>
-      </div>
-      <button class="pill" id="edgeLockBtn" type="button"></button>
-    </div>
-
-    <div class="row" style="margin-top:12px">
-      <div class="daytile"><div class="small">Locked Hour</div><div id="lockedHour" style="font-weight:700;font-size:20px">—</div></div>
-      <div class="daytile"><div class="small">Best Session</div><div id="bestSession" style="font-weight:700;font-size:20px">—</div></div>
-    </div>
-
-    <div id="lossWarning" style="display:none;margin-top:12px" class="warn"></div>
+    <p class="section-sub">Blocks saves outside your best hour or during heavy warnings.</p><div class="topline">
+  <div>
+    <div style="font-weight:700">Edge lock status</div>
+    <div class="mini">Behavior control before performance tracking.</div>
   </div>
+  <button class="pill" id="edgeLockBtn" type="button"></button>
+</div>
 
-  <div class="card">
+<div class="row" style="margin-top:12px">
+  <div class="daytile"><div class="small">Locked Hour</div><div id="lockedHour" style="font-weight:700;font-size:20px">—</div></div>
+  <div class="daytile"><div class="small">Best Session</div><div id="bestSession" style="font-weight:700;font-size:20px">—</div></div>
+</div>
+
+<div id="lossWarning" style="display:none;margin-top:12px" class="warn"></div>
+
+  </div>  <div class="card">
     <div class="section-title">Do Not Trade Filter</div>
-    <p class="section-sub">Checklist + emotion gate before entry.</p>
+    <p class="section-sub">Checklist + emotion gate before entry.</p><label class="label">Emotion Before</label>
+<div class="pills" id="emotionPills"></div>
 
-    <label class="label">Emotion Before</label>
-    <div class="pills" id="emotionPills"></div>
+<label class="label" style="margin-top:12px" for="confidence">Confidence: <span id="confidenceVal">5</span>/10</label>
+<input id="confidence" type="range" min="1" max="10" value="5">
 
-    <label class="label" style="margin-top:12px" for="confidence">Confidence: <span id="confidenceVal">5</span>/10</label>
-    <input id="confidence" type="range" min="1" max="10" value="5">
+<label class="label" style="margin-top:12px">Checklist</label>
+<div id="checklist"></div>
 
-    <label class="label" style="margin-top:12px">Checklist</label>
-    <div id="checklist"></div>
+<div id="warningsBox" class="daytile" style="margin-top:10px"></div>
 
-    <div id="warningsBox" class="daytile" style="margin-top:10px"></div>
-  </div>
-
-  <div class="card">
+  </div>  <div class="card">
     <div class="section-title">Discipline Review</div>
-    <p class="section-sub">Behavioral feedback that builds consistency.</p>
-
-    <div class="row">
-      <div>
-        <label class="label" for="followedPlan">Did I follow my plan?</label>
-        <select id="followedPlan">
-          <option value="Yes">Yes</option>
-          <option value="No">No</option>
-        </select>
-      </div>
-      <div>
-        <label class="label" for="brokeRule">Did I break a rule?</label>
-        <select id="brokeRule">
-          <option value="No">No</option>
-          <option value="Yes">Yes</option>
-        </select>
-      </div>
-    </div>
-
-    <div class="row" style="margin-top:12px">
-      <div>
-        <label class="label" for="shouldHaveSkipped">Should I have skipped this trade?</label>
-        <select id="shouldHaveSkipped">
-          <option value="No">No</option>
-          <option value="Yes">Yes</option>
-        </select>
-      </div>
-      <div>
-        <label class="label" for="disciplineScore">Discipline Score /10</label>
-        <input id="disciplineScore" type="number" min="1" max="10" value="8">
-      </div>
-    </div>
-
-    <label class="label" for="ruleBreakReason" style="margin-top:12px">Reason for rule break</label>
-    <textarea id="ruleBreakReason" placeholder="FOMO, overtrading, revenge, ignored setup rules..."></textarea>
+    <p class="section-sub">Behavioral feedback that builds consistency.</p><div class="row">
+  <div>
+    <label class="label" for="followedPlan">Did I follow my plan?</label>
+    <select id="followedPlan">
+      <option value="Yes">Yes</option>
+      <option value="No">No</option>
+    </select>
   </div>
+  <div>
+    <label class="label" for="brokeRule">Did I break a rule?</label>
+    <select id="brokeRule">
+      <option value="No">No</option>
+      <option value="Yes">Yes</option>
+    </select>
+  </div>
+</div>
 
-  <div class="card">
+<div class="row" style="margin-top:12px">
+  <div>
+    <label class="label" for="shouldHaveSkipped">Should I have skipped this trade?</label>
+    <select id="shouldHaveSkipped">
+      <option value="No">No</option>
+      <option value="Yes">Yes</option>
+    </select>
+  </div>
+  <div>
+    <label class="label" for="disciplineScore">Discipline Score /10</label>
+    <input id="disciplineScore" type="number" min="1" max="10" value="8">
+  </div>
+</div>
+
+<label class="label" for="ruleBreakReason" style="margin-top:12px">Reason for rule break</label>
+<textarea id="ruleBreakReason" placeholder="FOMO, overtrading, revenge, ignored setup rules..."></textarea>
+
+  </div>  <div class="card">
     <div class="section-title">News Context</div>
-    <p class="section-sub">Track the event and how it shaped the trade.</p>
+    <p class="section-sub">Track the event and how it shaped the trade.</p><label class="label" for="newsEvent">Event</label>
+<input id="newsEvent" placeholder="CPI, FOMC, NFP...">
 
-    <label class="label" for="newsEvent">Event</label>
-    <input id="newsEvent" placeholder="CPI, FOMC, NFP...">
+<label class="label" style="margin-top:12px">Outcome</label>
+<div class="pills" id="newsOutcomePills"></div>
 
-    <label class="label" style="margin-top:12px">Outcome</label>
-    <div class="pills" id="newsOutcomePills"></div>
+<label class="label" style="margin-top:12px" for="newsNotes">Notes</label>
+<textarea id="newsNotes" placeholder="What was the news and how did price react?"></textarea>
 
-    <label class="label" style="margin-top:12px" for="newsNotes">Notes</label>
-    <textarea id="newsNotes" placeholder="What was the news and how did price react?"></textarea>
-  </div>
-
-  <div class="card">
+  </div>  <div class="card">
     <div class="section-title">Review Notes</div>
     <p class="section-sub">Execution, discipline, mistakes.</p>
     <textarea id="reviewNotes" placeholder="What went well? What did I force?"></textarea>
     <button id="saveBtn" class="btn" style="margin-top:12px" type="button">Save Trade</button>
-  </div>
-
-  <div class="card">
+  </div>  <div class="card">
     <div class="section-title">Time Performance</div>
     <p class="section-sub">See when you are most profitable.</p>
     <div class="row">
@@ -480,49 +524,48 @@
       <div class="daytile"><div class="small">Best R:R Hour</div><div id="bestRRHour" style="font-weight:700;font-size:20px">—</div></div>
     </div>
     <div class="bars" id="hourBars" style="margin-top:10px"></div>
-  </div>
-
-  <div class="card">
+  </div>  <div class="card">
     <div class="section-title">Monthly Calendar</div>
-    <p class="section-sub">Daily P&L totals and number of trades.</p>
-    <div class="calendar" id="calendar"></div>
-  </div>
-
-  <div class="card">
+    <p class="section-sub">FTMO-style month view with daily P&amp;L and trade count.</p>
+    <div class="calendar-toolbar">
+      <button id="prevMonthBtn" class="btn secondary small" type="button">← Prev</button>
+      <div id="calendarMonthLabel" class="calendar-month-label">Month Year</div>
+      <button id="nextMonthBtn" class="btn secondary small" type="button">Next →</button>
+    </div>
+    <div class="calendar-grid" id="calendar"></div>
+    <div id="calendarSummary" class="calendar-summary">
+      <div style="font-weight:700;margin-bottom:6px">Selected Day</div>
+      <div class="small">Click a day to view its trades.</div>
+    </div>
+  </div>  <div class="card">
     <div class="section-title">Trade History</div>
     <p class="section-sub">Recent saved entries.</p>
     <div id="history"></div>
     <button id="exportBtn" class="btn secondary" style="margin-top:12px" type="button">Export JSON Backup</button>
   </div>
-</div>
-
-<div id="accountModalBackdrop" class="modal-backdrop">
+</div><div id="accountModalBackdrop" class="modal-backdrop">
   <div class="modal">
     <div class="section-title" id="accountModalTitle">Add Account</div>
-    <p class="section-sub">Create or update an account profile.</p>
+    <p class="section-sub">Create or update an account profile.</p><label class="label" for="accountNameInput">Account Name</label>
+<input id="accountNameInput" type="text" placeholder="Main Prop">
 
-    <label class="label" for="accountNameInput">Account Name</label>
-    <input id="accountNameInput" type="text" placeholder="Main Prop">
+<label class="label" for="accountTypeInput" style="margin-top:12px">Account Type</label>
+<select id="accountTypeInput">
+  <option value="Prop">Prop</option>
+  <option value="Demo">Demo</option>
+  <option value="Real">Real</option>
+</select>
 
-    <label class="label" for="accountTypeInput" style="margin-top:12px">Account Type</label>
-    <select id="accountTypeInput">
-      <option value="Prop">Prop</option>
-      <option value="Demo">Demo</option>
-      <option value="Real">Real</option>
-    </select>
+<label class="label" for="accountBalanceInput" style="margin-top:12px">Starting Balance</label>
+<input id="accountBalanceInput" type="number" placeholder="10000">
 
-    <label class="label" for="accountBalanceInput" style="margin-top:12px">Starting Balance</label>
-    <input id="accountBalanceInput" type="number" placeholder="10000">
-
-    <div class="modal-actions">
-      <button id="accountModalCancel" class="btn secondary" type="button">Cancel</button>
-      <button id="accountModalSave" class="btn" type="button">Save</button>
-    </div>
-  </div>
+<div class="modal-actions">
+  <button id="accountModalCancel" class="btn secondary" type="button">Cancel</button>
+  <button id="accountModalSave" class="btn" type="button">Save</button>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
-<script>
+  </div>
+</div><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script><script>
 const SUPABASE_URL = "https://jreasuuibdkescqsmabu.supabase.co";
 const SUPABASE_KEY = "sb_publishable_ihBmxcaFvdGimh2R5VsuzA_w6SflTxU";
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -551,7 +594,9 @@ const state = {
   emotion: "Focused",
   newsOutcome: "Neutral",
   edgeLock: true,
-  checklist: Object.fromEntries(checklistItems.map(x => [x, false]))
+  checklist: Object.fromEntries(checklistItems.map(x => [x, false])),
+  calendarDate: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
+  selectedCalendarDay: new Date().toISOString().slice(0,10)
 };
 
 const $ = id => document.getElementById(id);
@@ -1006,11 +1051,96 @@ function buildCalendarDays(hist) {
   const grouped = {};
   hist.forEach(t => {
     const d = t.date || "Unknown";
-    if (!grouped[d]) grouped[d] = { pnl: 0, trades: 0 };
+    if (!grouped[d]) grouped[d] = { pnl: 0, trades: 0, items: [] };
     grouped[d].pnl += pnl(t);
     grouped[d].trades += 1;
+    grouped[d].items.push(t);
   });
-  return Object.entries(grouped).sort((a,b) => a[0].localeCompare(b[0]));
+  return grouped;
+}
+
+function formatMonthLabel(dateObj) {
+  return dateObj.toLocaleDateString(undefined, { month: "long", year: "numeric" });
+}
+
+function getMonthMatrix(dateObj) {
+  const year = dateObj.getFullYear();
+  const month = dateObj.getMonth();
+  const firstDay = new Date(year, month, 1);
+  const lastDay = new Date(year, month + 1, 0);
+  const daysInMonth = lastDay.getDate();
+  const startOffset = (firstDay.getDay() + 6) % 7;
+
+  const cells = [];
+  for (let i = 0; i < startOffset; i++) cells.push(null);
+  for (let d = 1; d <= daysInMonth; d++) {
+    const iso = new Date(year, month, d).toISOString().slice(0,10);
+    cells.push(iso);
+  }
+  while (cells.length % 7 !== 0) cells.push(null);
+  return cells;
+}
+
+function renderCalendarSummary(dayKey, dayData) {
+  const summary = $("calendarSummary");
+
+  if (!dayKey || !dayData) {
+    summary.innerHTML = `
+      <div style="font-weight:700;margin-bottom:6px">Selected Day</div>
+      <div class="small">No trades saved for this day.</div>
+    `;
+    return;
+  }
+
+  const orderedTrades = [...dayData.items].sort((a, b) => String(a.time || "").localeCompare(String(b.time || "")));
+
+  summary.innerHTML = `
+    <div style="font-weight:700;margin-bottom:6px">${dayKey}</div>
+    <div class="small" style="margin-bottom:8px">${money(dayData.pnl)} • ${dayData.trades} trade${dayData.trades === 1 ? "" : "s"}</div>
+    ${orderedTrades.map(t => `
+      <div class="calendar-summary-item">
+        <div style="font-weight:700">${t.time || "—"} • ${t.pair || "—"} • ${t.result || "—"}</div>
+        <div class="small">${t.setup || "—"} • ${t.rr || "—"} • ${money(pnl(t))}</div>
+      </div>
+    `).join("")}
+  `;
+}
+
+function renderCalendar(hist) {
+  const grouped = buildCalendarDays(hist);
+  const monthCells = getMonthMatrix(state.calendarDate);
+  const todayKey = new Date().toISOString().slice(0,10);
+  const weekHeaders = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
+
+  $("calendarMonthLabel").textContent = formatMonthLabel(state.calendarDate);
+
+  $("calendar").innerHTML = [
+    ...weekHeaders.map(day => `<div class="calendar-head">${day}</div>`),
+    ...monthCells.map(dayKey => {
+      if (!dayKey) return `<div class="calendar-day empty"></div>`;
+
+      const dayData = grouped[dayKey];
+      const pnlValue = dayData ? dayData.pnl : 0;
+      const tradeCount = dayData ? dayData.trades : 0;
+      const classes = ["calendar-day"];
+      if (pnlValue > 0) classes.push("positive");
+      else if (pnlValue < 0) classes.push("neg");
+      else classes.push("flat");
+      if (dayKey === todayKey) classes.push("today");
+      if (dayKey === state.selectedCalendarDay) classes.push("selected");
+
+      const dayNumber = Number(dayKey.slice(-2));
+      return `
+        <button class="${classes.join(" ")}" type="button" onclick="selectCalendarDay('${dayKey}')">
+          <div class="calendar-date">${dayNumber}</div>
+          <div class="calendar-pnl">${tradeCount ? money(pnlValue) : "—"}</div>
+          <div class="calendar-trades">${tradeCount ? `${tradeCount} trade${tradeCount === 1 ? "" : "s"}` : "No trades"}</div>
+        </button>
+      `;
+    })
+  ].join("");
+
+  renderCalendarSummary(state.selectedCalendarDay, grouped[state.selectedCalendarDay] || null);
 }
 
 function hydrateAccountDefaults() {
@@ -1132,16 +1262,7 @@ function renderAll(){
     `).join("")
     : `<div class="muted">Add timed trades to unlock this section.</div>`;
 
-  const dayArr = buildCalendarDays(hist);
-  $("calendar").innerHTML = dayArr.length
-    ? dayArr.map(([d,obj]) => `
-      <div class="${obj.pnl > 0 ? "daytile positive" : obj.pnl < 0 ? "daytile neg" : "daytile flat"}">
-        <div class="small">${d}</div>
-        <div style="font-size:18px;font-weight:800;margin-top:6px">${money(obj.pnl)}</div>
-        <div class="small" style="margin-top:6px">${obj.trades} trade${obj.trades === 1 ? "" : "s"}</div>
-      </div>
-    `).join("")
-    : `<div class="muted">No saved trading days yet.</div>`;
+  renderCalendar(hist);
 
   $("history").innerHTML = hist.length
     ? hist.slice(0,10).map(t => `
@@ -1263,6 +1384,21 @@ $("exportBtn").onclick = async () => {
   a.click();
 };
 
+function selectCalendarDay(dayKey) {
+  state.selectedCalendarDay = dayKey;
+  renderAll();
+}
+
+$("prevMonthBtn").onclick = () => {
+  state.calendarDate = new Date(state.calendarDate.getFullYear(), state.calendarDate.getMonth() - 1, 1);
+  renderAll();
+};
+
+$("nextMonthBtn").onclick = () => {
+  state.calendarDate = new Date(state.calendarDate.getFullYear(), state.calendarDate.getMonth() + 1, 1);
+  renderAll();
+};
+
 async function initApp() {
   const loaded = await loadAccounts();
   if (!loaded) return;
@@ -1271,7 +1407,6 @@ async function initApp() {
 }
 
 initApp();
-</script>
-</body>
+</script></body>
 </html>
-
+    
