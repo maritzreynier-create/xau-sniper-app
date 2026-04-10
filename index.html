@@ -348,7 +348,48 @@
       padding:16px;
       box-shadow:0 20px 40px rgba(0,0,0,.45);
     }
-    .modal-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}@media (max-width: 640px){
+    .modal-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+    .coach-toast{
+      position:fixed;
+      left:50%;
+      bottom:20px;
+      transform:translateX(-50%) translateY(20px);
+      width:min(92vw, 420px);
+      background:linear-gradient(180deg, rgba(11,18,32,.98), rgba(7,12,24,.98));
+      border:1px solid rgba(34,197,94,.22);
+      border-radius:22px;
+      padding:14px;
+      box-shadow:0 18px 40px rgba(0,0,0,.35), 0 0 0 1px rgba(34,197,94,.04);
+      opacity:0;
+      pointer-events:none;
+      transition:.25s ease;
+      z-index:60;
+    }
+    .coach-toast.show{
+      opacity:1;
+      transform:translateX(-50%) translateY(0);
+    }
+    .coach-toast-title{
+      font-weight:800;
+      margin-bottom:6px;
+    }
+    .coach-toast-line{
+      font-size:13px;
+      color:var(--muted);
+      margin-top:4px;
+    }
+    .suggestion-box{
+      margin-top:12px;
+      border:1px solid rgba(34,197,94,.18);
+      background:rgba(34,197,94,.08);
+      border-radius:18px;
+      padding:12px;
+    }
+    .suggestion-title{
+      font-weight:700;
+      margin-bottom:6px;
+      color:#dcfce7;
+    }@media (max-width: 640px){
   .wrap{width:100%;max-width:none;padding:12px 12px 20px;}
   .title{font-size:28px}
   .grid3{grid-template-columns:1fr 1fr}
@@ -568,6 +609,11 @@
   <div></div>
 </div>
 
+<div id="smartSuggestionBox" class="suggestion-box" style="display:none">
+  <div class="suggestion-title">Smart Suggestions</div>
+  <div id="smartSuggestionText" class="small"></div>
+</div>
+
   </div>  <div class="card">
     <div class="section-title">Edge Lock</div>
     <p class="section-sub">Blocks saves outside your best hour or during heavy warnings.</p><div class="topline">
@@ -701,7 +747,7 @@
     <div id="history"></div>
     <button id="exportBtn" class="btn secondary" style="margin-top:12px" type="button">Export JSON Backup</button>
   </div>
-</div><div id="accountModalBackdrop" class="modal-backdrop">
+</div><div id="coachToast" class="coach-toast" aria-live="polite"></div><div id="accountModalBackdrop" class="modal-backdrop">
   <div class="modal">
     <div class="section-title" id="accountModalTitle">Add Account</div>
     <p class="section-sub">Create or update an account profile.</p><label class="label" for="accountNameInput">Account Name</label>
@@ -1074,9 +1120,84 @@ function renderPills(targetId, options, activeValue, onClick){
     b.className = "pill" + (opt === activeValue ? " active" : "");
     b.textContent = opt;
     b.type = "button";
-    b.onclick = () => { onClick(opt); renderAll(); };
+    b.onclick = () => {
+      onClick(opt);
+      if(targetId === "setupPills") applySmartSuggestions();
+      renderAll();
+    };
     el.appendChild(b);
   });
+}
+
+function getSetupSuggestionMap(){
+  return {
+    "Sweep → Break → Pullback": {
+      checklist: ["Liquidity sweep taken","Structure break confirmed","Pullback into entry zone"],
+      note: "Best when the move has already shown a clean sweep, break, and controlled return into entry."
+    },
+    "Session sweep reversal": {
+      checklist: ["Liquidity sweep taken","HTF bias aligned","News safe"],
+      note: "Usually strongest around session opens when price runs liquidity and sharply rejects."
+    },
+    "Breakout pullback continuation": {
+      checklist: ["Structure break confirmed","Pullback into entry zone","Clear displacement candle"],
+      note: "Best when momentum already expanded and the pullback stays clean."
+    },
+    "Range breakout retest": {
+      checklist: ["Structure break confirmed","Pullback into entry zone","News safe"],
+      note: "Look for a clean break and retest rather than chasing the first candle."
+    },
+    "Liquidity grab + expansion": {
+      checklist: ["Liquidity sweep taken","Clear displacement candle","Structure break confirmed"],
+      note: "Strong when the grab is followed by obvious displacement, not slow chop."
+    },
+    "Support/resistance rejection": {
+      checklist: ["HTF bias aligned","News safe"],
+      note: "Works best when rejection aligns with higher timeframe context, not random levels."
+    },
+    "Trend pullback continuation": {
+      checklist: ["HTF bias aligned","Pullback into entry zone","Risk within plan"],
+      note: "Best when the trend is clean and the pullback is controlled rather than deep."
+    }
+  };
+}
+
+function applySmartSuggestions(){
+  const map = getSetupSuggestionMap();
+  const setup = state.setup;
+  const config = map[setup];
+  if(!config) return;
+
+  const recommended = new Set(config.checklist || []);
+  checklistItems.forEach(item => {
+    if(recommended.has(item)) state.checklist[item] = true;
+  });
+
+  const lowered = setup.toLowerCase();
+  if(lowered.includes("reversal") || lowered.includes("rejection")) {
+    state.bias = state.bias === "Wait" ? "Sell" : state.bias;
+  }
+  if(lowered.includes("continuation") || lowered.includes("breakout") || lowered.includes("trend")) {
+    state.bias = state.bias === "Wait" ? "Buy" : state.bias;
+  }
+
+  const currentTime = $("time").value;
+  if(!currentTime){
+    if(lowered.includes("session") || lowered.includes("sweep") || lowered.includes("liquidity")) $("time").value = "10:00";
+    else if(lowered.includes("trend") || lowered.includes("continuation")) $("time").value = "15:00";
+  }
+}
+
+function renderSmartSuggestions(){
+  const map = getSetupSuggestionMap();
+  const config = map[state.setup];
+  if(!config){
+    $("smartSuggestionBox").style.display = "none";
+    return;
+  }
+  $("smartSuggestionBox").style.display = "block";
+  const suggestedChecks = (config.checklist || []).map(x => `• ${x}`).join("<br>");
+  $("smartSuggestionText").innerHTML = `${config.note}<br><br>${suggestedChecks}`;
 }
 
 function renderChecklist(){
@@ -1500,6 +1621,37 @@ function hydrateAccountDefaults() {
   isHydratingAccountInputs = false;
 }
 
+function getCoachMessage(trade, hist){
+  const score = Number(trade.disciplineScore || 0);
+  const band = getDisciplineBand(score).label;
+  const bestSessionStat = getSessionStats(hist).sort((a,b) => b.net - a.net)[0] || null;
+  const bestHour = getBestHour(hist);
+  const notes = [];
+
+  notes.push(`Discipline: ${score}/10 • ${band}`);
+  if(trade.result === "Win") notes.push(`Execution quality looked solid on this entry.`);
+  else if(trade.result === "Loss") notes.push(`Review the setup and checklist before the next entry.`);
+  else notes.push(`Log enough detail so this trade still teaches you something.`);
+
+  if(bestSessionStat && trade.session === bestSessionStat.session) notes.push(`You traded inside your strongest recorded session: ${bestSessionStat.session}.`);
+  else if(bestSessionStat) notes.push(`Your strongest recorded session is currently ${bestSessionStat.session}.`);
+
+  if(bestHour && trade.time && trade.time.split(":")[0] === bestHour.hour) notes.push(`This entry matched your best recorded hour.`);
+
+  return notes;
+}
+
+function showCoachToast(lines){
+  const el = $("coachToast");
+  el.innerHTML = `
+    <div class="coach-toast-title">Trade Logged ✔</div>
+    ${lines.map(line => `<div class="coach-toast-line">${line}</div>`).join("")}
+  `;
+  el.classList.add("show");
+  clearTimeout(showCoachToast._timer);
+  showCoachToast._timer = setTimeout(() => el.classList.remove("show"), 4200);
+}
+
 function resetTradeForm() {
   $("entry").value = "";
   $("lotSize").value = "";
@@ -1539,6 +1691,7 @@ function renderAll(){
   renderPills("emotionPills", emotions, state.emotion, v => state.emotion = v);
   renderPills("newsOutcomePills", newsOutcomes, state.newsOutcome, v => state.newsOutcome = v);
   renderChecklist();
+  renderSmartSuggestions();
   renderDiscipline();
   renderEquityChart(hist);
 
@@ -1741,8 +1894,10 @@ $("saveBtn").onclick = async () => {
   if (!saveResult.success) return;
 
   tradesCache = [saveResult.data, ...tradesCache];
+  const coachLines = getCoachMessage(saveResult.data, tradesCache);
   resetTradeForm();
   renderAll();
+  showCoachToast(coachLines);
 };
 
 $("exportBtn").onclick = async () => {
