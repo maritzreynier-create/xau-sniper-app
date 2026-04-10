@@ -340,6 +340,88 @@
       display:none; align-items:center; justify-content:center; z-index:50;
       padding:16px;
     }
+    .splash-screen{
+      position:fixed;
+      inset:0;
+      z-index:100;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      background:
+        radial-gradient(circle at top, rgba(34,197,94,.08), transparent 24%),
+        radial-gradient(circle at bottom right, rgba(59,130,246,.08), transparent 22%),
+        linear-gradient(180deg,var(--bg) 0%, var(--bg-2) 100%);
+      opacity:1;
+      visibility:visible;
+      transition:opacity .45s ease, visibility .45s ease;
+    }
+    .splash-screen.hide{
+      opacity:0;
+      visibility:hidden;
+      pointer-events:none;
+    }
+    .splash-content{
+      width:min(88vw, 340px);
+      text-align:center;
+      padding:28px 22px;
+      border-radius:30px;
+      border:1px solid rgba(148,163,184,.12);
+      background:linear-gradient(180deg, rgba(11,18,32,.96), rgba(7,12,24,.96));
+      box-shadow:0 20px 44px rgba(0,0,0,.34), inset 0 1px 0 rgba(255,255,255,.04);
+    }
+    .splash-mark-wrap{
+      width:94px;
+      height:94px;
+      margin:0 auto 18px;
+      border-radius:50%;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      box-shadow:0 0 28px rgba(34,197,94,.14);
+      animation:splashPulse 2.8s ease-in-out infinite;
+    }
+    .splash-mark{
+      width:94px;
+      height:94px;
+      border-radius:24px;
+      object-fit:contain;
+    }
+    .splash-title{
+      font-size:30px;
+      font-weight:800;
+      letter-spacing:-.03em;
+      margin-bottom:8px;
+    }
+    .splash-sub{
+      color:var(--muted);
+      font-size:14px;
+      line-height:1.45;
+      margin-bottom:18px;
+    }
+    .splash-bar{
+      width:100%;
+      height:4px;
+      border-radius:999px;
+      background:rgba(148,163,184,.10);
+      overflow:hidden;
+    }
+    .splash-bar span{
+      display:block;
+      width:38%;
+      height:100%;
+      border-radius:999px;
+      background:linear-gradient(90deg,var(--green),var(--green-soft));
+      box-shadow:0 0 16px rgba(34,197,94,.25);
+      animation:splashLoad 1.4s ease-in-out infinite;
+    }
+    @keyframes splashPulse{
+      0%,100%{transform:scale(1);filter:brightness(1)}
+      50%{transform:scale(1.03);filter:brightness(1.05)}
+    }
+    @keyframes splashLoad{
+      0%{transform:translateX(-120%)}
+      100%{transform:translateX(300%)}
+    }
     .modal{
       width:100%; max-width:420px;
       background:rgba(15,23,42,.98);
@@ -444,10 +526,20 @@
   .btn.small{width:auto}
 }
 
-.hero-card{ position:relative; overflow:hidden; background:linear-gradient(180deg, rgba(11,18,32,.98), rgba(7,12,24,.94)); border:1px solid rgba(148,163,184,.12); border-radius:28px; padding:18px 16px 16px; margin-bottom:14px; box-shadow: 0 18px 40px rgba(0,0,0,.30), inset 0 1px 0 rgba(255,255,255,.04), 0 0 0 1px rgba(34,197,94,.03); } .metrics-grid-primary .card, .metrics-grid-secondary .card{ min-width:0; } .hero-card::before{ content:""; position:absolute; inset:auto -40px -40px auto; width:140px; height:140px; background:radial-gradient(circle, rgba(34,197,94,.16), rgba(34,197,94,0)); pointer-events:none; } .hero-topline{ display:flex; justify-content:space-between; align-items:flex-start; gap:12px; } .brand-mark{ position:relative; width:58px; height:58px; flex:0 0 58px; display:flex; align-items:center; justify-content:center; } .brand-mark-ring{ position:absolute; inset:0; border-radius:50%; border:1px solid rgba(34,197,94,.28); box-shadow:0 0 22px rgba(34,197,94,.12); } .brand-mark-core{ position:relative; z-index:1; width:42px; height:42px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:800; letter-spacing:.08em; color:#dcfce7; background:linear-gradient(180deg, rgba(34,197,94,.18), rgba(15,23,42,.95)); border:1px solid rgba(34,197,94,.24); } .hero-tags{ display:flex; gap:8px; flex-wrap:wrap; } .hero-tag{ display:inline-flex; align-items:center; padding:7px 10px; border-radius:999px; border:1px solid rgba(148,163,184,.12); background:rgba(17,24,39,.78); color:var(--muted); font-size:11px; letter-spacing:.06em; text-transform:uppercase; } @media (max-width: 640px){ .hero-topline{align-items:center;} .brand-mark{width:50px;height:50px;flex-basis:50px;} .brand-mark-core{width:38px;height:38px;font-size:11px;} } @media (max-width: 480px){ .hero-card{padding:16px 14px 14px;border-radius:24px;} .hero-topline{align-items:flex-start;} .hero-tag{font-size:10px;padding:6px 9px;} .brand-mark{width:46px;height:46px;flex-basis:46px;} .brand-mark-core{width:34px;height:34px;} } </style>
+.hero-card{ position:relative; overflow:hidden; background:linear-gradient(180deg, rgba(11,18,32,.98), rgba(7,12,24,.94)); border:1px solid rgba(148,163,184,.12); border-radius:28px; padding:18px 16px 16px; margin-bottom:14px; box-shadow: 0 18px 40px rgba(0,0,0,.30), inset 0 1px 0 rgba(255,255,255,.04), 0 0 0 1px rgba(34,197,94,.03); } .metrics-grid-primary .card, .metrics-grid-secondary .card{ min-width:0; } .hero-card::before{ content:""; position:absolute; inset:auto -40px -40px auto; width:140px; height:140px; background:radial-gradient(circle, rgba(34,197,94,.16), rgba(34,197,94,0)); pointer-events:none; } .hero-topline{ display:flex; justify-content:space-between; align-items:flex-start; gap:12px; } .brand-mark{ position:relative; width:58px; height:58px; flex:0 0 58px; display:flex; align-items:center; justify-content:center; } .brand-mark-ring{ position:absolute; inset:0; border-radius:50%; border:1px solid rgba(34,197,94,.28); box-shadow:0 0 22px rgba(34,197,94,.12); animation:smPulseRing 3.2s ease-in-out infinite; } .brand-mark-core{ position:relative; z-index:1; width:42px; height:42px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:800; letter-spacing:.08em; color:#dcfce7; background:linear-gradient(180deg, rgba(34,197,94,.18), rgba(15,23,42,.95)); border:1px solid rgba(34,197,94,.24); box-shadow:0 0 18px rgba(34,197,94,.10); animation:smPulseCore 3.2s ease-in-out infinite; } .hero-tags{ display:flex; gap:8px; flex-wrap:wrap; } .hero-tag{ display:inline-flex; align-items:center; padding:7px 10px; border-radius:999px; border:1px solid rgba(148,163,184,.12); background:rgba(17,24,39,.78); color:var(--muted); font-size:11px; letter-spacing:.06em; text-transform:uppercase; } @keyframes smPulseRing { 0%, 100% { box-shadow:0 0 18px rgba(34,197,94,.10), 0 0 0 rgba(34,197,94,0); border-color:rgba(34,197,94,.24); transform:scale(1); } 50% { box-shadow:0 0 26px rgba(34,197,94,.20), 0 0 40px rgba(34,197,94,.06); border-color:rgba(74,222,128,.38); transform:scale(1.025); } } @keyframes smPulseCore { 0%, 100% { box-shadow:0 0 14px rgba(34,197,94,.08); filter:brightness(1); } 50% { box-shadow:0 0 24px rgba(34,197,94,.18), 0 0 34px rgba(34,197,94,.08); filter:brightness(1.06); } } @media (prefers-reduced-motion: reduce){ .brand-mark-ring, .brand-mark-core, .splash-mark-wrap, .splash-bar span{ animation:none; } } @media (max-width: 640px){ .hero-topline{align-items:center;} .brand-mark{width:50px;height:50px;flex-basis:50px;} .brand-mark-core{width:38px;height:38px;font-size:11px;} } @media (max-width: 480px){ .hero-card{padding:16px 14px 14px;border-radius:24px;} .hero-topline{align-items:flex-start;} .hero-tag{font-size:10px;padding:6px 9px;} .brand-mark{width:46px;height:46px;flex-basis:46px;} .brand-mark-core{width:34px;height:34px;} } </style>
 
 </head>
 <body>
+<div id="splashScreen" class="splash-screen">
+  <div class="splash-content">
+    <div class="splash-mark-wrap">
+      <img src="/icons/icon-192.png" alt="SteadyMind" class="splash-mark">
+    </div>
+    <div class="splash-title">SteadyMind</div>
+    <div class="splash-sub">Built for Psychology. Driven by Discipline.</div>
+    <div class="splash-bar"><span></span></div>
+  </div>
+</div>
 <div class="wrap">
   <div class="hero-card">
   <div class="hero-topline">
@@ -1924,13 +2016,25 @@ $("nextMonthBtn").onclick = () => {
   renderAll();
 };
 
-async function initApp() {
-  const loaded = await loadAccounts();
-  if (!loaded) return;
-  await loadTrades();
-  renderAll();
+function hideSplashScreen(){
+  const splash = $("splashScreen");
+  if(!splash) return;
+  setTimeout(() => splash.classList.add("hide"), 600);
 }
 
-initApp();
+async function initApp() {
+  const loaded = await loadAccounts();
+  if (!loaded) {
+    hideSplashScreen();
+    return;
+  }
+  await loadTrades();
+  renderAll();
+  hideSplashScreen();
+}
+
+window.addEventListener("load", () => {
+  initApp();
+});
 </script></body>
 </html>
