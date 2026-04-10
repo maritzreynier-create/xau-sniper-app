@@ -272,12 +272,18 @@ async function loadTrades() {
 }
 
 async function saveTradeToCloud(trade) {
-  const { error } = await supabaseClient
+  const { data, error } = await supabaseClient
     .from("trades")
-    .insert([trade]);
+    .insert([trade])
+    .select();
+
+  console.log("TRADE:", trade);
+  console.log("RESULT:", data, error);
 
   if (error) {
-    console.error("Save error:", error);
+    alert("ERROR: " + error.message);
+  } else {
+    alert("SUCCESS");
   }
 }
 
@@ -573,7 +579,7 @@ $("exportBtn").onclick = async () => {
   a.download = "xauusd-sniper-backup.json";
   a.click();
 };
-
+  
 renderAll();
 </script>
 </body>
