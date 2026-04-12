@@ -318,10 +318,10 @@
       box-shadow:0 0 16px rgba(34,197,94,.2);
     }
     .chart-wrap{
-  position:relative;
-  height:260px;
-  width:100%;
-  padding:6px 2px 0;
+      position:relative;
+      height:300px;
+      width:100%;
+      padding:6px 2px 0;
 }
     .account-row{
       display:grid;
@@ -909,48 +909,53 @@
         <button id="deleteAccountBtn" class="btn danger small" type="button">Delete</button>
       </div>
     </div>
-  </div>  <div class="grid3 metrics-grid-primary">
+    </div>  <div class="grid3 metrics-grid-primary">
     <div class="card">
-      <div class="label">Starting Balance</div>
-      <div class="value-small" id="startingBalance">$0.00</div>
+      <div class="label">Net P&amp;L</div>
+      <div class="value" id="netPnl">$0.00</div>
     </div>
     <div class="card">
       <div class="label">Current Balance</div>
-      <div class="value-small" id="currentBalance">$0.00</div>
+      <div class="value" id="currentBalance">$0.00</div>
     </div>
     <div class="card">
-      <div class="label">Net P&L</div>
-      <div class="value-small" id="netPnl">$0.00</div>
+      <div class="label">Daily Discipline</div>
+      <div class="value" id="dailyDiscipline">0.0</div>
+      <div class="mini">Execution discipline</div>
     </div>
   </div>  <div class="grid3 metrics-grid-secondary">
+    <div class="card"><div class="label">Starting Balance</div><div class="value-small" id="startingBalance">$0.00</div></div>
     <div class="card"><div class="label">Win Rate</div><div class="value-small" id="winRate">0%</div></div>
     <div class="card"><div class="label">Profit Factor</div><div class="value-small" id="profitFactor">0.00</div></div>
-    <div class="card"><div class="label">Daily Discipline</div><div class="value-small" id="dailyDiscipline">0.0</div><div class="mini">Behavior quality</div></div>
   </div>  <div class="grid2">
     <div class="card"><div class="label">Avg Win</div><div class="value" id="avgWin">$0.00</div></div>
     <div class="card"><div class="label">Avg Loss</div><div class="value" id="avgLoss">$0.00</div></div>
-  </div>  <div class="grid2">
+  </div>
+
+  <div class="grid2">
     <div class="card"><div class="label">Average RRR</div><div class="value-small" id="avgRRR">0.00R</div></div>
     <div class="card"><div class="label">Sharpe Ratio</div><div class="value-small" id="sharpeRatio">0.00</div></div>
+  </div>
+
   <div class="card">
-  <div class="topline" style="margin-bottom:10px">
-    <div>
-      <div class="section-title">Equity Curve</div>
-      <p class="section-sub" style="margin-bottom:0">
-        Track cumulative performance over time.
-      </p>
+    <div class="topline" style="margin-bottom:10px">
+      <div>
+        <div class="section-title">Equity Curve</div>
+        <p class="section-sub" style="margin-bottom:0">
+          Track cumulative performance over time.
+        </p>
+      </div>
+
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button id="equityAmountBtn" type="button" class="btn secondary small">$</button>
+        <button id="equityPercentBtn" type="button" class="btn secondary small">%</button>
+      </div>
     </div>
 
-    <div style="display:flex;gap:8px;flex-wrap:wrap">
-      <button id="equityAmountBtn" type="button" class="btn secondary small">$</button>
-      <button id="equityPercentBtn" type="button" class="btn secondary small">%</button>
+    <div class="chart-wrap">
+      <canvas id="equityChart"></canvas>
     </div>
   </div>
-
-  <div class="chart-wrap">
-    <canvas id="equityChart"></canvas>
-  </div>
-</div>
   </div>  <div class="card">
     <div class="section-title">Filters</div>
     <p class="section-sub">Focus the dashboard by setup, session, or result.</p>
@@ -1059,7 +1064,7 @@
     <p class="section-sub">Blocks saves outside your best hour or during heavy warnings.</p><div class="topline">
   <div>
     <div style="font-weight:700">Edge lock status</div>
-    <div class="mini">Behavior control before performance tracking.</div>
+    <div class="mini">Discipline first. Performance follows.</div>
   </div>
   <button class="pill" id="edgeLockBtn" type="button"></button>
 </div>
@@ -1160,7 +1165,7 @@
     <div id="insightsList" class="calendar-summary" style="margin-top:12px"></div>
   </div>  <div class="card">
     <div class="section-title">Monthly Calendar</div>
-    <p class="section-sub">FTMO-style month view with daily P&amp;L and trade count.</p>
+    <p class="section-sub">Monthly performance overview with daily P&amp;L and execution detail.</p>
     <div class="grid3" style="margin-bottom:12px">
       <div class="daytile"><div class="small">Month P&amp;L</div><div id="monthPnl" style="font-weight:700;font-size:20px">—</div></div>
       <div class="daytile"><div class="small">Trades</div><div id="monthTrades" style="font-weight:700;font-size:20px">—</div></div>
