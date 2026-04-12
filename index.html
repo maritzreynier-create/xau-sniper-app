@@ -932,12 +932,25 @@
   </div>  <div class="grid2">
     <div class="card"><div class="label">Average RRR</div><div class="value-small" id="avgRRR">0.00R</div></div>
     <div class="card"><div class="label">Sharpe Ratio</div><div class="value-small" id="sharpeRatio">0.00</div></div>
-  </div>  <div class="card">
-    <div class="section-title">Equity Curve</div>
-    <p class="section-sub">Track cumulative performance over time.</p>
-    <div class="chart-wrap">
-      <canvas id="equityChart"></canvas>
+  <div class="card">
+  <div class="topline" style="margin-bottom:10px">
+    <div>
+      <div class="section-title">Equity Curve</div>
+      <p class="section-sub" style="margin-bottom:0">
+        Track cumulative performance over time.
+      </p>
     </div>
+
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button id="equityAmountBtn" type="button" class="btn secondary small">$</button>
+      <button id="equityPercentBtn" type="button" class="btn secondary small">%</button>
+    </div>
+  </div>
+
+  <div class="chart-wrap">
+    <canvas id="equityChart"></canvas>
+  </div>
+</div>
   </div>  <div class="card">
     <div class="section-title">Filters</div>
     <p class="section-sub">Focus the dashboard by setup, session, or result.</p>
