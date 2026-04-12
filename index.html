@@ -344,21 +344,6 @@
       display:none; align-items:center; justify-content:center; z-index:50;
       padding:16px;
     }
-    .splash-screen{
-      position:fixed;
-      inset:0;
-      z-index:100;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      background:
-        radial-gradient(circle at top, rgba(34,197,94,.08), transparent 24%),
-        radial-gradient(circle at bottom right, rgba(59,130,246,.08), transparent 22%),
-        linear-gradient(180deg,var(--bg) 0%, var(--bg-2) 100%);
-      opacity:1;
-      visibility:visible;
-      transition:opacity .45s ease, visibility .45s ease;
-    }
 .splash-screen{
   position:fixed;
   inset:0;
@@ -2407,7 +2392,6 @@ function selectCalendarDay(dayKey) {
   state.selectedCalendarDay = dayKey;
   renderAll();
 }
-
 $("prevMonthBtn").onclick = () => {
   state.calendarDate = new Date(state.calendarDate.getFullYear(), state.calendarDate.getMonth() - 1, 1);
   renderAll();
@@ -2418,7 +2402,6 @@ $("nextMonthBtn").onclick = () => {
   renderAll();
 };
 
-<script>
 function revealApp(){
   const splash = $("splashScreen");
   const appShell = $("appShell");
@@ -2445,5 +2428,5 @@ window.addEventListener("load", () => {
   initApp();
 });
 </script>
-</script></body>
+</body>
 </html>
