@@ -1397,7 +1397,7 @@ function renderEquityChart(hist) {
     type: "line",
         data: {
       labels,
-      datasets: [
+           datasets: [
         {
           label: mode === "percent" ? "Equity %" : "Equity",
           data: values,
@@ -1425,6 +1425,32 @@ function renderEquityChart(hist) {
                 : lineGradient;
             }
           }
+        },
+        {
+          label: "Start Line",
+          data: Array(labels.length).fill(
+            mode === "percent" ? 0 : Number(stats.start.toFixed(2))
+          ),
+          borderColor: "rgba(148,163,184,0.38)",
+          borderDash: [6, 6],
+          borderWidth: 1.2,
+          pointRadius: 0,
+          pointHoverRadius: 0,
+          fill: false
+        },
+        {
+          label: "Peak Line",
+          data: Array(labels.length).fill(
+            mode === "percent"
+              ? Number(toPercentFromStart(stats.peak, start).toFixed(2))
+              : Number(stats.peak.toFixed(2))
+          ),
+          borderColor: "rgba(74,222,128,0.25)",
+          borderDash: [4, 6],
+          borderWidth: 1.2,
+          pointRadius: 0,
+          pointHoverRadius: 0,
+          fill: false
         }
       ]
     },
@@ -1437,7 +1463,7 @@ function renderEquityChart(hist) {
       },
       plugins: {
         legend: { display: false },
-                 tooltip: {
+        tooltip: {
           backgroundColor: "rgba(11,18,32,0.96)",
           borderColor: "rgba(148,163,184,0.18)",
           borderWidth: 1,
@@ -1445,6 +1471,9 @@ function renderEquityChart(hist) {
           bodyColor: "#e5e7eb",
           padding: 12,
           displayColors: false,
+          filter(context) {
+            return context.dataset.label === "Equity" || context.dataset.label === "Equity %";
+          },
           callbacks: {
             title(items) {
               return items?.[0]?.label || "Equity";
