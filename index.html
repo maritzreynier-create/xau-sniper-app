@@ -359,73 +359,124 @@
       visibility:visible;
       transition:opacity .45s ease, visibility .45s ease;
     }
-    .splash-screen.hide{
-      opacity:0;
-      visibility:hidden;
-      pointer-events:none;
-    }
-    .splash-content{
-      width:min(88vw, 340px);
-      text-align:center;
-      padding:28px 22px;
-      border-radius:30px;
-      border:1px solid rgba(148,163,184,.12);
-      background:linear-gradient(180deg, rgba(11,18,32,.96), rgba(7,12,24,.96));
-      box-shadow:0 20px 44px rgba(0,0,0,.34), inset 0 1px 0 rgba(255,255,255,.04);
-    }
-    .splash-mark-wrap{
-      width:94px;
-      height:94px;
-      margin:0 auto 18px;
-      border-radius:50%;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      box-shadow:0 0 28px rgba(34,197,94,.14);
-      animation:splashPulse 2.8s ease-in-out infinite;
-    }
-    .splash-mark{
-      width:94px;
-      height:94px;
-      border-radius:24px;
-      object-fit:contain;
-    }
-    .splash-title{
-      font-size:30px;
-      font-weight:800;
-      letter-spacing:-.03em;
-      margin-bottom:8px;
-    }
-    .splash-sub{
-      color:var(--muted);
-      font-size:14px;
-      line-height:1.45;
-      margin-bottom:18px;
-    }
-    .splash-bar{
-      width:100%;
-      height:4px;
-      border-radius:999px;
-      background:rgba(148,163,184,.10);
-      overflow:hidden;
-    }
-    .splash-bar span{
-      display:block;
-      width:38%;
-      height:100%;
-      border-radius:999px;
-      background:linear-gradient(90deg,var(--green),var(--green-soft));
-      box-shadow:0 0 16px rgba(34,197,94,.25);
-      animation:splashLoad 1.4s ease-in-out infinite;
-    }
-    @keyframes splashPulse{
-      0%,100%{transform:scale(1);filter:brightness(1)}
-      50%{transform:scale(1.03);filter:brightness(1.05)}
-    }
-    @keyframes splashLoad{
-      0%{transform:translateX(-120%)}
-      100%{transform:translateX(300%)}
-    }
+.splash-screen{
+  position:fixed;
+  inset:0;
+  z-index:100;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:
+    radial-gradient(circle at top, rgba(34,197,94,.10), transparent 24%),
+    radial-gradient(circle at bottom right, rgba(59,130,246,.08), transparent 22%),
+    linear-gradient(180deg,var(--bg) 0%, var(--bg-2) 100%);
+  opacity:1;
+  visibility:visible;
+  transition:opacity .55s ease, visibility .55s ease;
+}
+
+.splash-screen.hide{
+  opacity:0;
+  visibility:hidden;
+  pointer-events:none;
+}
+
+.splash-content{
+  position:relative;
+  width:min(88vw, 360px);
+  text-align:center;
+  padding:34px 24px 26px;
+  border-radius:32px;
+  border:1px solid rgba(148,163,184,.12);
+  background:linear-gradient(180deg, rgba(11,18,32,.97), rgba(7,12,24,.96));
+  box-shadow:
+    0 24px 54px rgba(0,0,0,.38),
+    inset 0 1px 0 rgba(255,255,255,.04),
+    0 0 0 1px rgba(34,197,94,.03);
+  overflow:hidden;
+}
+
+.splash-orb{
+  position:absolute;
+  inset:auto auto -20px 50%;
+  width:220px;
+  height:220px;
+  transform:translateX(-50%);
+  background:radial-gradient(circle, rgba(34,197,94,.16), rgba(34,197,94,0) 70%);
+  filter:blur(10px);
+  pointer-events:none;
+}
+
+.splash-mark-wrap{
+  position:relative;
+  width:110px;
+  height:110px;
+  margin:0 auto 18px;
+  border-radius:28px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  box-shadow:
+    0 0 34px rgba(34,197,94,.16),
+    0 0 70px rgba(34,197,94,.08);
+  animation:splashPulse 2.8s ease-in-out infinite;
+}
+
+.splash-mark{
+  width:110px;
+  height:110px;
+  border-radius:28px;
+  object-fit:contain;
+  display:block;
+}
+
+.splash-title{
+  font-size:31px;
+  font-weight:800;
+  letter-spacing:-.03em;
+  margin-bottom:8px;
+}
+
+.splash-sub{
+  color:var(--muted);
+  font-size:14px;
+  line-height:1.45;
+  margin-bottom:20px;
+}
+
+.splash-bar{
+  width:100%;
+  height:4px;
+  border-radius:999px;
+  background:rgba(148,163,184,.10);
+  overflow:hidden;
+}
+
+.splash-bar span{
+  display:block;
+  width:42%;
+  height:100%;
+  border-radius:999px;
+  background:linear-gradient(90deg,var(--green),var(--green-soft));
+  box-shadow:0 0 16px rgba(34,197,94,.25);
+  animation:splashLoad 1.35s ease-in-out infinite;
+}
+
+@keyframes splashPulse{
+  0%,100%{
+    transform:scale(1);
+    filter:brightness(1);
+  }
+  50%{
+    transform:scale(1.035);
+    filter:brightness(1.08);
+  }
+}
+
+@keyframes splashLoad{
+  0%{transform:translateX(-120%)}
+  100%{transform:translateX(300%)}
+}
     .modal{
       width:100%; max-width:420px;
       background:rgba(15,23,42,.98);
@@ -798,15 +849,22 @@
 <body>
 <div id="splashScreen" class="splash-screen">
   <div class="splash-content">
+    <div class="splash-orb"></div>
+
     <div class="splash-mark-wrap">
-      <img src="/icons/icon-192.png" alt="SteadyMind" class="splash-mark">
+      <img src="/icons/icon-512.png" alt="SteadyMind" class="splash-mark">
     </div>
+
     <div class="splash-title">SteadyMind</div>
     <div class="splash-sub">Built for Psychology. Driven by Discipline.</div>
-    <div class="splash-bar"><span></span></div>
+
+    <div class="splash-bar">
+      <span></span>
+    </div>
   </div>
 </div>
-<div class="wrap">
+
+<div id="appShell" class="wrap app-shell">
   <div class="hero-card">
   <div class="hero-topline">
     <div>
