@@ -1397,23 +1397,35 @@ function renderEquityChart(hist) {
     type: "line",
     data: {
       labels,
-      datasets: [
-        {
-          label: mode === "percent" ? "Equity %" : "Equity",
-          data: values,
-          borderColor: strokeColor,
-          backgroundColor: lineGradient,
-          fill: true,
-          tension: 0.3,
-          borderWidth: 3,
-          pointRadius: series.length > 1 ? 2 : 0,
-          pointHoverRadius: 5,
-          pointBackgroundColor: pointColor,
-          pointBorderColor: "#0b1220",
-          pointBorderWidth: 2
-        }
-      ]
+      {
+  label: mode === "percent" ? "Equity %" : "Equity",
+  data: values,
+  borderColor: strokeColor,
+  backgroundColor: lineGradient,
+  fill: true,
+  tension: 0.32,
+  borderWidth: 3,
+  pointRadius: series.length > 1 ? 2 : 0,
+  pointHoverRadius: 5,
+  pointBackgroundColor: pointColor,
+  pointBorderColor: "#0b1220",
+  pointBorderWidth: 2,
+
+  segment: {
+    borderColor: ctx => {
+      const prev = ctx.p0.parsed.y;
+      const curr = ctx.p1.parsed.y;
+      return curr < prev ? "#ef4444" : strokeColor;
     },
+    backgroundColor: ctx => {
+      const prev = ctx.p0.parsed.y;
+      const curr = ctx.p1.parsed.y;
+      return curr < prev
+        ? "rgba(239,68,68,0.15)"
+        : lineGradient;
+    }
+  }
+}
     options: {
       responsive: true,
       maintainAspectRatio: false,
