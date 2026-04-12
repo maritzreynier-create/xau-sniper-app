@@ -1353,10 +1353,139 @@ function getEquityStats(series) {
 
   return { start, end, peak, trough, maxDrawdown };
 }
+  function toPercentFromStart(value, start) {
+  if (!start) return 0;
+  return ((Number(value) - Number(start)) / Number(start)) * 100;
+}
 function renderEquityChart(hist) {
   const series = buildEquitySeries(hist);
   const canvas = document.getElementById("equityChart");
   const ctx = canvas.getContext("2d");
+
+  if (equityChart) equityChart.destroy();
+
+  const start = Number(currentAccount?.starting_balance || 0);
+  const stats = getEquityStats(series);
+  const mode = state.equityMode || "amount";
+
+  const labels = series.length ? series.map(x => x.label) : ["No Data"];
+  const rawValues = series.length
+    ? series.map(x => x.equity)
+    : [start];
+
+  const values = mode === "percent"
+    ? rawValues.map(v => Number(toPercentFromStart(v, start).toFixed(2)))
+    : rawValues;
+
+  const finalValue = rawValues.length ? rawValues[rawValues.length - 1] : start;
+  const isUp = finalValue >= start;
+
+  const lineGradient = ctx.createLinearGradient(0, 0, 0, canvas.height || 260);
+  lineGradient.addColorStop(0, isUp ? "rgba(34,197,94,0.32)" : "rgba(239,68,68,0.28)");
+  lineGradient.addColorStop(1, "rgba(15,23,42,0.02)");
+
+  const strokeColor = isUp ? "#22c55e" : "#ef4444";
+  const pointColor = isUp ? "#4ade80" : "#f87171";
+
+  equityChart = new Chart(ctx, {
+    type: "line",
+    data: {
+      labels,
+      datasets: [
+        {
+          label: mode === "percent" ? "Equity %" : "Equity",
+          data: values,
+          borderColor: strokeColor,
+          backgroundColor: lineGradient,
+          fill: true,
+          tension: 0.3,
+          borderWidth: 3,
+          pointRadius: series.length > 1 ? 2 : 0,
+          pointHoverRadius: 5,
+          pointBackgroundColor: pointColor,
+          pointBorderColor: "#0b1220",
+          pointBorderWidth: 2
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: {
+        mode: "index",
+        intersect: false
+      },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: "rgba(11,18,32,0.96)",
+          borderColor: "rgba(148,163,184,0.18)",
+          borderWidth: 1,
+          titleColor: "#e5e7eb",
+          bodyColor: "#e5e7eb",
+          padding: 12,
+          displayColors: false,
+          callbacks: {
+            title(items) {
+              return items?.[0]?.label || "Equity";
+            },
+            label(context) {
+              return `${context.dataset.label}: ${mode === "percent"
+                ? `${Number(context.parsed.y).toFixed(2)}%`
+                : money(context.parsed.y)}`;
+            },
+            afterLabel(context) {
+              if (context.dataset.label !== "Equity" && context.dataset.label !== "Equity %") return [];
+
+              return [
+                `Start: ${money(stats.start)}`,
+                `Peak: ${money(stats.peak)}`,
+                `Max DD: ${money(stats.maxDrawdown)}`
+              ];
+            }
+          }
+        }
+      },
+      scales: {
+        x: {
+          ticks: {
+            color: "#94a3b8",
+            maxTicksLimit: 6
+          },
+          grid: {
+            color: "rgba(148,163,184,0.06)",
+            drawBorder: false
+          }
+        },
+        y: {
+          ticks: {
+            color: "#94a3b8",
+            callback: function(value) {
+              return mode === "percent"
+                ? `${Number(value).toFixed(2)}%`
+                : "$" + Number(value).toFixed(0);
+            }
+          },
+          grid: {
+            color: "rgba(148,163,184,0.08)",
+            drawBorder: false
+          }
+        }
+      },
+      elements: {
+        line: {
+          capBezierPoints: true
+        }
+      }
+    }
+  });
+
+  const amountBtn = $("equityAmountBtn");
+  const percentBtn = $("equityPercentBtn");
+
+  if (amountBtn) amountBtn.classList.toggle("active", mode === "amount");
+  if (percentBtn) percentBtn.classList.toggle("active", mode === "percent");
+}
 
   if (equityChart) equityChart.destroy();
 
@@ -2523,7 +2652,15 @@ $("prevMonthBtn").onclick = () => {
   state.calendarDate = new Date(state.calendarDate.getFullYear(), state.calendarDate.getMonth() - 1, 1);
   renderAll();
 };
+$("equityAmountBtn").onclick = () => {
+  state.equityMode = "amount";
+  renderAll();
+};
 
+$("equityPercentBtn").onclick = () => {
+  state.equityMode = "percent";
+  renderAll();
+};
 $("nextMonthBtn").onclick = () => {
   state.calendarDate = new Date(state.calendarDate.getFullYear(), state.calendarDate.getMonth() + 1, 1);
   renderAll();
