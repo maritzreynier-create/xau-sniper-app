@@ -1790,22 +1790,82 @@ function renderCalendarSummary(dayKey, dayData) {
   if (!dayKey || !dayData) {
     summary.innerHTML = `
       <div style="font-weight:700;margin-bottom:6px">Selected Day</div>
-      <div class="small">No trades saved for this day.</div>
+      <div class="small">Click a day to view its trades.</div>
     `;
     return;
   }
 
-  const orderedTrades = [...dayData.items].sort((a, b) => String(a.time || "").localeCompare(String(b.time || "")));
+  const orderedTrades = [...dayData.items].sort((a, b) =>
+    String(a.time || "").localeCompare(String(b.time || ""))
+  );
+
+  const wins = orderedTrades.filter(t => Number(t.pnl ?? pnl(t) ?? 0) > 0).length;
+  const losses = orderedTrades.filter(t => Number(t.pnl ?? pnl(t) ?? 0) < 0).length;
+  const breakeven = orderedTrades.length - wins - losses;
 
   summary.innerHTML = `
-    <div style="font-weight:700;margin-bottom:6px">${dayKey}</div>
-    <div class="small" style="margin-bottom:8px">${money(dayData.pnl)} • ${dayData.trades} trade${dayData.trades === 1 ? "" : "s"}</div>
-    ${orderedTrades.map(t => `
-      <div class="calendar-summary-item">
-        <div style="font-weight:700">${t.time || "—"} • ${t.pair || "—"} • ${t.result || "—"}</div>
-        <div class="small">${t.setup || "—"} • ${t.rr || "—"} • ${money(pnl(t))}</div>
+    <div class="calendar-summary-top">
+      <div>
+        <div class="calendar-summary-date">${dayKey}</div>
+        <div class="calendar-summary-sub">
+          ${money(dayData.pnl)} • ${dayData.trades} trade${dayData.trades === 1 ? "" : "s"}
+        </div>
       </div>
-    `).join("")}
+      <div class="calendar-summary-mini-stats">
+        <div class="day-stat"><span>Wins</span><strong>${wins}</strong></div>
+        <div class="day-stat"><span>Losses</span><strong>${losses}</strong></div>
+        <div class="day-stat"><span>BE</span><strong>${breakeven}</strong></div>
+      </div>
+    </div>
+
+    <div class="calendar-trade-list">
+      ${orderedTrades.map((t, index) => {
+        const tradePnl = Number(t.pnl ?? pnl(t) ?? 0);
+        const pnlClass = tradePnl > 0 ? "positive-text" : tradePnl < 0 ? "negative-text" : "";
+
+        return `
+          <div class="calendar-summary-item trade-detail-card">
+            <div class="trade-detail-head">
+              <div class="trade-detail-title">
+                Trade ${index + 1} • ${t.time || "—"} • ${t.pair || "—"}
+              </div>
+              <div class="trade-detail-pnl ${pnlClass}">
+                ${money(tradePnl)}
+              </div>
+            </div>
+
+            <div class="trade-detail-grid">
+              <div><span>Result</span><strong>${t.result || "—"}</strong></div>
+              <div><span>Setup</span><strong>${t.setup || "—"}</strong></div>
+              <div><span>Bias</span><strong>${t.bias || "—"}</strong></div>
+              <div><span>Session</span><strong>${t.session || "—"}</strong></div>
+              <div><span>R:R</span><strong>${t.rr || "—"}</strong></div>
+              <div><span>Discipline</span><strong>${t.disciplineScore ?? "—"}</strong></div>
+              <div><span>Entry</span><strong>${t.entry ?? "—"}</strong></div>
+              <div><span>SL</span><strong>${t.sl ?? "—"}</strong></div>
+              <div><span>TP</span><strong>${t.tp ?? "—"}</strong></div>
+              <div><span>Lot Size</span><strong>${t.lotSize ?? "—"}</strong></div>
+              <div><span>Risk</span><strong>${t.riskAmount ? money(t.riskAmount) : "—"}</strong></div>
+              <div><span>Account</span><strong>${t.accountName || "—"}</strong></div>
+            </div>
+
+            ${
+              t.notes || t.news || t.newsNotes || t.emotionBefore || t.ruleBreakReason
+                ? `
+                  <div class="trade-detail-notes">
+                    ${t.emotionBefore ? `<div><span>Emotion:</span> ${t.emotionBefore}</div>` : ""}
+                    ${t.news ? `<div><span>News:</span> ${t.news}</div>` : ""}
+                    ${t.newsNotes ? `<div><span>News Notes:</span> ${t.newsNotes}</div>` : ""}
+                    ${t.notes ? `<div><span>Notes:</span> ${t.notes}</div>` : ""}
+                    ${t.ruleBreakReason ? `<div><span>Rule Break:</span> ${t.ruleBreakReason}</div>` : ""}
+                  </div>
+                `
+                : ""
+            }
+          </div>
+        `;
+      }).join("")}
+    </div>
   `;
 }
 
