@@ -319,9 +319,9 @@
     }
     .chart-wrap{
       position:relative;
-      height:300px;
+      height:320px;
       width:100%;
-      padding:6px 2px 0;
+      padding:10px 4px 0;
 }
     .account-row{
       display:grid;
@@ -894,7 +894,7 @@
     </div>
   </div>
 
-  <div class="card">
+ <div class="card" style="padding-top:16px">
     <div class="section-title">Account</div>
     <p class="section-sub">Each account has its own history, stats, and equity curve.</p>
     <div class="account-row">
@@ -937,14 +937,19 @@
     <div class="card"><div class="label">Sharpe Ratio</div><div class="value-small" id="sharpeRatio">0.00</div></div>
   </div>
 
-  <div class="card">
-    <div class="topline" style="margin-bottom:10px">
+      <div class="topline" style="margin-bottom:14px">
       <div>
         <div class="section-title">Equity Curve</div>
-        <p class="section-sub" style="margin-bottom:0">
-          Track cumulative performance over time.
+        <p class="section-sub" style="margin:4px 0 0">
+          Track performance. Stay consistent.
         </p>
       </div>
+
+      <div style="display:flex;gap:6px;">
+        <button id="equityAmountBtn" type="button" class="btn small">$</button>
+        <button id="equityPercentBtn" type="button" class="btn secondary small">%</button>
+      </div>
+    </div>
 
       <div style="display:flex;gap:8px;flex-wrap:wrap">
         <button id="equityAmountBtn" type="button" class="btn secondary small">$</button>
