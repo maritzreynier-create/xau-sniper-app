@@ -159,11 +159,17 @@
       color:#fff;
       box-shadow:0 10px 24px rgba(239,68,68,.16);
     }
-    .btn.small{
+        .btn.small{
       width:auto;
       padding:10px 12px;
       font-size:13px;
       border-radius:14px;
+    }
+    .btn.active{
+      background:linear-gradient(90deg,var(--green),#16a34a);
+      color:#03130a;
+      border:1px solid rgba(34,197,94,.5);
+      box-shadow:0 8px 20px rgba(34,197,94,.18);
     }
     .btn:disabled{opacity:.5;cursor:not-allowed}
     .warn{
@@ -1328,15 +1334,25 @@ function buildEquitySeries(hist) {
 }
 function getEquityStats(series) {
   if (!series.length) {
-    const start = Number(currentAccount?.starting_balance || 0);
-    return {
-      start,
-      end: start,
-      peak: start,
-      trough: start,
-      maxDrawdown: 0
-    };
-  }
+      const start = Number(currentAccount?.starting_balance || 0);
+  let running = start;
+
+  if (!ordered.length) return [];
+
+  const series = [{
+    label: ordered[0].date || "Start",
+    equity: Number(start.toFixed(2))
+  }];
+
+  ordered.forEach((t, index) => {
+    running += pnl(t);
+    series.push({
+      label: t.date || `Trade ${index + 1}`,
+      equity: Number(running.toFixed(2))
+    });
+  });
+
+  return series;
 
   const values = series.map(x => Number(x.equity || 0));
   const start = Number(currentAccount?.starting_balance || 0);
