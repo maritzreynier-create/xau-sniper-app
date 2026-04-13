@@ -1325,18 +1325,7 @@ function buildEquitySeries(hist) {
       return d !== 0 ? d : String(a.id || "").localeCompare(String(b.id || ""));
     });
 
-  let running = Number(currentAccount?.starting_balance || 0);
-  return ordered.map((t, index) => {
-    running += pnl(t);
-    return {
-      label: t.date || `Trade ${index + 1}`,
-      equity: Number(running.toFixed(2))
-    };
-  });
-}
-function getEquityStats(series) {
-  if (!series.length) {
-      const start = Number(currentAccount?.starting_balance || 0);
+  const start = Number(currentAccount?.starting_balance || 0);
   let running = start;
 
   if (!ordered.length) return [];
@@ -1355,6 +1344,19 @@ function getEquityStats(series) {
   });
 
   return series;
+}
+
+function getEquityStats(series) {
+  if (!series.length) {
+    const start = Number(currentAccount?.starting_balance || 0);
+    return {
+      start,
+      end: start,
+      peak: start,
+      trough: start,
+      maxDrawdown: 0
+    };
+  }
 
   const values = series.map(x => Number(x.equity || 0));
   const start = Number(currentAccount?.starting_balance || 0);
@@ -1368,7 +1370,6 @@ function getEquityStats(series) {
   for (const v of values) {
     if (v > peak) peak = v;
     if (v < trough) trough = v;
-
     if (v > runningPeak) runningPeak = v;
 
     const dd = runningPeak - v;
