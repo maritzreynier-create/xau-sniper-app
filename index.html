@@ -1252,7 +1252,7 @@ const state = {
   edgeLock: true,
   checklist: Object.fromEntries(checklistItems.map(x => [x, false])),
   calendarDate: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
-  selectedCalendarDay: new Date().toISOString().slice(0,10),
+    selectedCalendarDay: localDateKey(new Date()),
   filters: {
     setup: "All",
     session: "All",
@@ -1304,9 +1304,11 @@ function sessionFromTime(time){
   return "Off Hours";
 }
 
-function weekdayName(date){
-  const d = new Date(date);
-  return Number.isNaN(d.getTime()) ? "Unknown" : weekDays[d.getDay()];
+function localDateKey(date){
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
 }
 
 function getAccountBadgeClass(type) {
@@ -2112,7 +2114,7 @@ function getMonthMatrix(dateObj) {
   const cells = [];
   for (let i = 0; i < startOffset; i++) cells.push(null);
   for (let d = 1; d <= daysInMonth; d++) {
-    const iso = new Date(year, month, d).toISOString().slice(0,10);
+        const iso = localDateKey(new Date(year, month, d));
     cells.push(iso);
   }
   while (cells.length % 7 !== 0) cells.push(null);
@@ -2239,7 +2241,7 @@ function renderCalendarSummary(dayKey, dayData) {
 function renderCalendar(hist) {
   const grouped = buildCalendarDays(hist);
   const monthCells = getMonthMatrix(state.calendarDate);
-  const todayKey = new Date().toISOString().slice(0,10);
+  const todayKey = localDateKey(new Date());
   const weekHeaders = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
   const isMobile = window.innerWidth <= 640;
 
@@ -2378,7 +2380,7 @@ function renderAll(){
   populateFilters(baseHist);
   const hist = applyFilters(baseHist);
 
-  $("date").value ||= new Date().toISOString().slice(0,10);
+  $("date").value ||= localDateKey(new Date());
   $("riskAmount").value = ((Number($("accountSize").value || 0) * Number($("riskPercent").value || 0)) / 100).toFixed(2);
 
   renderPills("biasPills", biasOptions, state.bias, v => state.bias = v);
@@ -2486,7 +2488,7 @@ function renderAll(){
 }
 
 $("result").innerHTML = resultOptions.map(x => `<option>${x}</option>`).join("");
-$("date").value = new Date().toISOString().slice(0,10);
+$("date").value = localDateKey(new Date());
 
 ["accountSize","riskPercent","rr","time","confidence","pair","followedPlan","brokeRule","shouldHaveSkipped"].forEach(id => {
   $(id).addEventListener("input", () => {
