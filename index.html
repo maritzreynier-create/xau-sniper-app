@@ -981,6 +981,20 @@
       </div>
     </div>
     <button id="clearFiltersBtn" class="btn secondary" style="margin-top:12px" type="button">Clear Filters</button>
+    <div class="card">
+  <div class="section-title">MT4 / MT5 Screenshot Scanner</div>
+  <p class="section-sub">Upload a trade screenshot and let SteadyMind auto-fill the form. Always review before saving.</p>
+
+  <label class="label" for="tradeScreenshot">Upload Screenshot</label>
+  <input id="tradeScreenshot" type="file" accept="image/*">
+
+  <div id="scannerPreviewWrap" style="display:none;margin-top:12px">
+    <img id="scannerPreview" alt="Trade screenshot preview" style="width:100%;border-radius:18px;border:1px solid rgba(148,163,184,.12)">
+  </div>
+
+  <button id="scanTradeBtn" class="btn" style="margin-top:12px" type="button" disabled>Scan Screenshot</button>
+  <div id="scannerStatus" class="daytile" style="margin-top:12px">Upload a screenshot to begin.</div>
+</div>
   </div>  <div class="card">
     <div class="section-title">Trade Input</div>
     <p class="section-sub">Fast journaling with clean execution tracking.</p><div class="row">
@@ -2607,7 +2621,99 @@ $("accountModalSave").onclick = saveAccountModal;
 $("accountModalBackdrop").addEventListener("click", (e) => {
   if (e.target.id === "accountModalBackdrop") closeAccountModal();
 });
+let selectedTradeScreenshot = null;
 
+function fileToDataUrl(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+function setScannerStatus(message, type = "neutral") {
+  const box = $("scannerStatus");
+  if (!box) return;
+  box.textContent = message;
+  box.className = type === "good" ? "safe" : type === "bad" ? "warn" : "daytile";
+}
+
+function applyScannedTrade(data) {
+  if (!data || typeof data !== "object") return;
+
+  if (data.pair) $("pair").value = String(data.pair).trim().toUpperCase();
+  if (data.date) $("date").value = data.date;
+  if (data.time) $("time").value = data.time;
+  if (data.entry) $("entry").value = data.entry;
+  if (data.lotSize) $("lotSize").value = data.lotSize;
+  if (data.sl) $("sl").value = data.sl;
+  if (data.tp) $("tp").value = data.tp;
+  if (data.rr) $("rr").value = data.rr;
+
+  if (data.bias && ["Buy", "Sell", "Wait"].includes(data.bias)) {
+    state.bias = data.bias;
+  }
+
+  if (data.result && ["Win", "Loss", "BE", "No Trade"].includes(data.result)) {
+    $("result").value = data.result;
+  }
+
+  if (data.notes) {
+    $("reviewNotes").value = data.notes;
+  }
+
+  renderAll();
+}
+
+$("tradeScreenshot").addEventListener("change", async (e) => {
+  selectedTradeScreenshot = e.target.files?.[0] || null;
+
+  if (!selectedTradeScreenshot) {
+    $("scanTradeBtn").disabled = true;
+    $("scannerPreviewWrap").style.display = "none";
+    setScannerStatus("Upload a screenshot to begin.");
+    return;
+  }
+
+  const previewUrl = URL.createObjectURL(selectedTradeScreenshot);
+  $("scannerPreview").src = previewUrl;
+  $("scannerPreviewWrap").style.display = "block";
+  $("scanTradeBtn").disabled = false;
+  setScannerStatus("Screenshot loaded. Click Scan Screenshot.");
+});
+
+$("scanTradeBtn").onclick = async () => {
+  if (!selectedTradeScreenshot) return;
+
+  try {
+    $("scanTradeBtn").disabled = true;
+    setScannerStatus("Scanning screenshot...");
+
+    const imageDataUrl = await fileToDataUrl(selectedTradeScreenshot);
+
+    const response = await fetch("/api/parse-trade-screenshot", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ imageDataUrl })
+    });
+
+    const result = await response.json();
+
+    if (!response.ok || !result.success) {
+      throw new Error(result.error || "Scanner failed.");
+    }
+
+    applyScannedTrade(result.trade);
+    setScannerStatus("Scan complete. Review the form before saving.", "good");
+  } catch (err) {
+    setScannerStatus(err.message || "Could not scan this screenshot.", "bad");
+  } finally {
+    $("scanTradeBtn").disabled = false;
+  }
+};
 $("saveBtn").onclick = async () => {
   if (!currentAccountId) {
     alert("Please select an account first.");
