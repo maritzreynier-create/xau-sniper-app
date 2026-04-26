@@ -986,12 +986,74 @@
     <p class="section-sub">Fast journaling with clean execution tracking.</p><div class="row">
   <div>
     <label class="label" for="pair">Asset</label>
-    <select id="pair">
-      <option value="XAUUSD">XAUUSD - Gold</option>
-      <option value="NAS100">NAS100</option>
-      <option value="US30">US30</option>
-      <option value="US500">US500</option>
-    </select>
+<input
+  id="pair"
+  list="assetSuggestions"
+  placeholder="Type any asset (Forex, Indices, Crypto, Synthetics...)"
+  autocomplete="off"
+/>
+
+<datalist id="assetSuggestions">
+
+  <!-- 🔹 FOREX -->
+  <option value="EURUSD"></option>
+  <option value="GBPUSD"></option>
+  <option value="USDJPY"></option>
+  <option value="USDCHF"></option>
+  <option value="AUDUSD"></option>
+  <option value="USDCAD"></option>
+  <option value="NZDUSD"></option>
+  <option value="EURGBP"></option>
+  <option value="EURJPY"></option>
+  <option value="GBPJPY"></option>
+
+  <!-- 🔹 INDICES -->
+  <option value="NAS100"></option>
+  <option value="US30"></option>
+  <option value="US500"></option>
+  <option value="GER40"></option>
+  <option value="UK100"></option>
+  <option value="JPN225"></option>
+  <option value="AUS200"></option>
+  <option value="SPX500"></option>
+
+  <!-- 🔹 METALS -->
+  <option value="XAUUSD - Gold"></option>
+  <option value="XAGUSD - Silver"></option>
+  <option value="XPTUSD - Platinum"></option>
+
+  <!-- 🔹 CRYPTO -->
+  <option value="BTCUSD"></option>
+  <option value="ETHUSD"></option>
+  <option value="XRPUSD"></option>
+  <option value="SOLUSD"></option>
+  <option value="ADAUSD"></option>
+  <option value="DOGEUSD"></option>
+
+  <!-- 🔹 DERIV SYNTHETICS -->
+  <option value="Volatility 10 Index"></option>
+  <option value="Volatility 25 Index"></option>
+  <option value="Volatility 50 Index"></option>
+  <option value="Volatility 75 Index"></option>
+  <option value="Volatility 100 Index"></option>
+
+  <option value="Boom 300 Index"></option>
+  <option value="Boom 500 Index"></option>
+  <option value="Boom 1000 Index"></option>
+
+  <option value="Crash 300 Index"></option>
+  <option value="Crash 500 Index"></option>
+  <option value="Crash 1000 Index"></option>
+
+  <option value="Step Index"></option>
+
+  <option value="Jump 10 Index"></option>
+  <option value="Jump 25 Index"></option>
+  <option value="Jump 50 Index"></option>
+  <option value="Jump 75 Index"></option>
+  <option value="Jump 100 Index"></option>
+
+</datalist>
   </div>
   <div>
     <label class="label" for="date">Date</label>
