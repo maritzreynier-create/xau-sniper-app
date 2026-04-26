@@ -2621,7 +2621,9 @@ $("saveBtn").onclick = async () => {
 
   const trade = {
     account_id: currentAccountId,
-    pair: $("pair").value || "XAUUSD",
+   pair: ($("pair").value || "XAUUSD")
+  .trim()
+  .toUpperCase(),
     date: $("date").value,
     setup: state.setup,
     bias: state.bias,
