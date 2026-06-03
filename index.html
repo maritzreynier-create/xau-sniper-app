@@ -2819,7 +2819,9 @@ brokeRule: $("brokeRule").value,
 
 ruleViolations: Array.from(
   document.querySelectorAll('#ruleViolationList input[type="checkbox"]:checked')
-).map(cb => cb.value),
+)
+.map(cb => cb.value)
+.join(", "),
 
 ruleBreakReason: $("ruleBreakReason").value,
 
