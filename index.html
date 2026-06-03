@@ -1255,8 +1255,23 @@
 
 <div id="disciplineFeedback" class="daytile" style="margin-top:12px"></div>
 
-<label class="label" for="ruleBreakReason" style="margin-top:12px">Reason for rule break</label>
-<textarea id="ruleBreakReason" placeholder="FOMO, overtrading, revenge, ignored setup rules..."></textarea>
+<label class="label" style="margin-top:12px">Rule Violations</label>
+
+<div id="ruleViolationList" style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:8px">
+  <label><input type="checkbox" value="FOMO"> FOMO</label>
+  <label><input type="checkbox" value="Revenge Trade"> Revenge Trade</label>
+  <label><input type="checkbox" value="Overtrading"> Overtrading</label>
+  <label><input type="checkbox" value="Entered Early"> Entered Early</label>
+  <label><input type="checkbox" value="Moved Stop Loss"> Moved Stop Loss</label>
+  <label><input type="checkbox" value="Ignored Bias"> Ignored Bias</label>
+  <label><input type="checkbox" value="Chased Price"> Chased Price</label>
+  <label><input type="checkbox" value="Over Risked"> Over Risked</label>
+  <label><input type="checkbox" value="No Confirmation"> No Confirmation</label>
+  <label><input type="checkbox" value="Other"> Other</label>
+</div>
+
+<label class="label" for="ruleBreakReason" style="margin-top:12px">Notes</label>
+<textarea id="ruleBreakReason" placeholder="Describe the mistake, lesson learned, or additional context..."></textarea>
 
   </div>  <div class="card">
     <div class="section-title">News Context</div>
