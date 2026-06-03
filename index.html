@@ -2285,6 +2285,10 @@ $("ruleViolationInsight").textContent =
 
 $("ruleBreakCountInsight").textContent =
   totalRuleBreaks || 0;
+  $("costliestViolationInsight").textContent =
+  costliestViolation
+    ? `${costliestViolation[0]} (${money(costliestViolation[1])})`
+    : "No data";
   const insightLines = [];
   if(bestSetup) insightLines.push(`• Best setup so far: ${bestSetup.name} with ${bestSetup.trades} trades and ${Math.round(bestSetup.winRate)}% win rate.`);
   if(worstSetup) insightLines.push(`• Weakest setup so far: ${worstSetup.name} with net ${money(worstSetup.net)}.`);
