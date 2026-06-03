@@ -2248,6 +2248,28 @@ hist.forEach(trade => {
 
 const topViolation = Object.entries(violationCounts)
   .sort((a, b) => b[1] - a[1])[0];
+  const violationPnL = {};
+
+hist.forEach(trade => {
+  if (!trade.ruleViolations) return;
+
+  const pnl =
+    Number(trade.pnl) ||
+    Number(trade.profit) ||
+    Number(trade.net) ||
+    0;
+
+  trade.ruleViolations
+    .split(",")
+    .map(v => v.trim())
+    .filter(Boolean)
+    .forEach(v => {
+      violationPnL[v] = (violationPnL[v] || 0) + pnl;
+    });
+});
+
+const costliestViolation = Object.entries(violationPnL)
+  .sort((a, b) => a[1] - b[1])[0];
 
 const totalRuleBreaks = Object.values(violationCounts)
   .reduce((sum, count) => sum + count, 0);
