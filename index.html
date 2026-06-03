@@ -2813,7 +2813,9 @@ $("saveBtn").onclick = async () => {
     confidence: $("confidence").value ? Number($("confidence").value) : null,
     notes: $("reviewNotes").value,
     session: sessionFromTime($("time").value),
-    weekday: weekdayName($("date").value),
+    weekday: new Date($("date").value).toLocaleDateString("en-US", {
+  weekday: "long"
+}),
 followedPlan: $("followedPlan").value,
 brokeRule: $("brokeRule").value,
 
