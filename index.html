@@ -2228,6 +2228,25 @@ function renderInsights(hist){
   const worstSetup = [...setupStats].sort((a,b) => a.net - b.net)[0] || null;
   const bestSession = getSessionStats(hist).sort((a,b) => b.net - a.net)[0] || null;
   const disciplineText = getDisciplineEdgeInsight(hist);
+  const violationCounts = {};
+
+hist.forEach(trade => {
+  if (!trade.ruleViolations) return;
+
+  trade.ruleViolations
+    .split(",")
+    .map(v => v.trim())
+    .filter(Boolean)
+    .forEach(v => {
+      violationCounts[v] = (violationCounts[v] || 0) + 1;
+    });
+});
+
+const topViolation = Object.entries(violationCounts)
+  .sort((a, b) => b[1] - a[1])[0];
+
+const totalRuleBreaks = Object.values(violationCounts)
+  .reduce((sum, count) => sum + count, 0);
 
   $("bestSetupInsight").textContent = bestSetup ? `${bestSetup.name} (${money(bestSetup.net)})` : "Not enough data";
   $("worstSetupInsight").textContent = worstSetup ? `${worstSetup.name} (${money(worstSetup.net)})` : "Not enough data";
