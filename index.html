@@ -2814,11 +2814,17 @@ $("saveBtn").onclick = async () => {
     notes: $("reviewNotes").value,
     session: sessionFromTime($("time").value),
     weekday: weekdayName($("date").value),
-    followedPlan: $("followedPlan").value,
-    brokeRule: $("brokeRule").value,
-    ruleBreakReason: $("ruleBreakReason").value,
-    shouldHaveSkipped: $("shouldHaveSkipped").value,
-    disciplineScore: Number($("disciplineScore").value)
+followedPlan: $("followedPlan").value,
+brokeRule: $("brokeRule").value,
+
+ruleViolations: Array.from(
+  document.querySelectorAll('#ruleViolationList input[type="checkbox"]:checked')
+).map(cb => cb.value),
+
+ruleBreakReason: $("ruleBreakReason").value,
+
+shouldHaveSkipped: $("shouldHaveSkipped").value,
+disciplineScore: Number($("disciplineScore").value)
   };
 
   const saveResult = await saveTradeToCloud(trade);
