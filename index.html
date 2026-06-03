@@ -2252,13 +2252,23 @@ const totalRuleBreaks = Object.values(violationCounts)
   $("worstSetupInsight").textContent = worstSetup ? `${worstSetup.name} (${money(worstSetup.net)})` : "Not enough data";
   $("disciplineInsight").textContent = disciplineText;
   $("sessionInsight").textContent = bestSession ? `${bestSession.session} leads with ${money(bestSession.net)}` : "Not enough data";
+$("ruleViolationInsight").textContent =
+  topViolation
+    ? `${topViolation[0]} (${topViolation[1]})`
+    : "No violations logged";
 
+$("ruleBreakCountInsight").textContent =
+  totalRuleBreaks || 0;
   const insightLines = [];
   if(bestSetup) insightLines.push(`• Best setup so far: ${bestSetup.name} with ${bestSetup.trades} trades and ${Math.round(bestSetup.winRate)}% win rate.`);
   if(worstSetup) insightLines.push(`• Weakest setup so far: ${worstSetup.name} with net ${money(worstSetup.net)}.`);
   if(bestSession) insightLines.push(`• Best session so far: ${bestSession.session} with ${bestSession.trades} trades logged.`);
   insightLines.push(`• ${disciplineText}.`);
-
+if (topViolation) {
+  insightLines.push(
+    `• Most common rule violation: ${topViolation[0]} (${topViolation[1]} occurrences).`
+  );
+}
   $("insightsList").innerHTML = `
     <div style="font-weight:700;margin-bottom:6px">Performance Signals</div>
     <div class="small">${insightLines.length ? insightLines.join("<br>") : "Add more trades to unlock insights."}</div>
