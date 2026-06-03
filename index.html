@@ -2299,6 +2299,11 @@ if (topViolation) {
     `• Most common rule violation: ${topViolation[0]} (${topViolation[1]} occurrences).`
   );
 }
+  if (costliestViolation) {
+  insightLines.push(
+    `• Costliest mistake: ${costliestViolation[0]} with ${money(costliestViolation[1])}.`
+  );
+}
   $("insightsList").innerHTML = `
     <div style="font-weight:700;margin-bottom:6px">Performance Signals</div>
     <div class="small">${insightLines.length ? insightLines.join("<br>") : "Add more trades to unlock insights."}</div>
