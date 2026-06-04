@@ -2342,6 +2342,11 @@ if (topViolation) {
     `• Costliest mistake: ${costliestViolation[0]} with ${money(costliestViolation[1])}.`
   );
 }
+ if (disciplineTrend !== "Not enough data") {
+  insightLines.push(
+    `• Discipline trend: ${disciplineTrend}.`
+  );
+} 
   $("insightsList").innerHTML = `
     <div style="font-weight:700;margin-bottom:6px">Performance Signals</div>
     <div class="small">${insightLines.length ? insightLines.join("<br>") : "Add more trades to unlock insights."}</div>
