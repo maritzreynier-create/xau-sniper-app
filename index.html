@@ -2301,14 +2301,11 @@ const olderAverage =
 
 let disciplineTrend = "Not enough data";
 
+if (recentAverage !== null && olderAverage === null) {
+  disciplineTrend = `Current Avg: ${recentAverage.toFixed(1)}/10`;
+}
+
 if (recentAverage !== null && olderAverage !== null) {
-  if (recentAverage > olderAverage + 0.5) {
-    disciplineTrend = `↑ Improving (${recentAverage.toFixed(1)}/10)`;
-  } else if (recentAverage < olderAverage - 0.5) {
-    disciplineTrend = `↓ Declining (${recentAverage.toFixed(1)}/10)`;
-  } else {
-    disciplineTrend = `→ Stable (${recentAverage.toFixed(1)}/10)`;
-  }
 }
 
   $("bestSetupInsight").textContent = bestSetup ? `${bestSetup.name} (${money(bestSetup.net)})` : "Not enough data";
