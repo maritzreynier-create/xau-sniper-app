@@ -2308,7 +2308,27 @@ let disciplineTrend = "Not enough data";
 if (recentAverage !== null && olderAverage === null) {
   disciplineTrend = `Current Avg: ${recentAverage.toFixed(1)}/10`;
 }
+let coachAlert = "Keep logging trades to unlock coaching insights.";
 
+if (costliestViolation) {
+  coachAlert =
+    `${costliestViolation[0]} is costing you the most money. Focus on eliminating this mistake first.`;
+}
+
+if (
+  disciplineTrend.includes("Improving")
+) {
+  coachAlert =
+    "Discipline is improving. Keep following your trading plan.";
+}
+
+if (
+  topViolation &&
+  topViolation[0].toUpperCase().includes("FOMO")
+) {
+  coachAlert =
+    "FOMO is your most common mistake. Wait for confirmation before entering trades.";
+}
 if (recentAverage !== null && olderAverage !== null) {
 }
 
