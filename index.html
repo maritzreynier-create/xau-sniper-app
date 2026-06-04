@@ -2273,6 +2273,43 @@ hist.forEach(trade => {
 
 const costliestViolation = Object.entries(violationPnL)
   .sort((a, b) => a[1] - b[1])[0];
+  const recentTrades = [...hist]
+  .sort((a, b) => new Date(b.date) - new Date(a.date))
+  .slice(0, 10);
+
+const recentDisciplineScores = recentTrades
+  .map(t => Number(t.disciplineScore))
+  .filter(score => !isNaN(score));
+
+const olderTrades = [...hist]
+  .sort((a, b) => new Date(b.date) - new Date(a.date))
+  .slice(10, 20);
+
+const olderDisciplineScores = olderTrades
+  .map(t => Number(t.disciplineScore))
+  .filter(score => !isNaN(score));
+
+const recentAverage =
+  recentDisciplineScores.length
+    ? recentDisciplineScores.reduce((a, b) => a + b, 0) / recentDisciplineScores.length
+    : null;
+
+const olderAverage =
+  olderDisciplineScores.length
+    ? olderDisciplineScores.reduce((a, b) => a + b, 0) / olderDisciplineScores.length
+    : null;
+
+let disciplineTrend = "Not enough data";
+
+if (recentAverage !== null && olderAverage !== null) {
+  if (recentAverage > olderAverage + 0.5) {
+    disciplineTrend = `↑ Improving (${recentAverage.toFixed(1)}/10)`;
+  } else if (recentAverage < olderAverage - 0.5) {
+    disciplineTrend = `↓ Declining (${recentAverage.toFixed(1)}/10)`;
+  } else {
+    disciplineTrend = `→ Stable (${recentAverage.toFixed(1)}/10)`;
+  }
+}
 
   $("bestSetupInsight").textContent = bestSetup ? `${bestSetup.name} (${money(bestSetup.net)})` : "Not enough data";
   $("worstSetupInsight").textContent = worstSetup ? `${worstSetup.name} (${money(worstSetup.net)})` : "Not enough data";
