@@ -2920,6 +2920,39 @@ if (Number(value) >= 8){
   el.classList.add("discipline-bad");
 }
 }
+  function renderSparkline(id, values, type = "neutral"){
+  const svg = $(id);
+  if (!svg) return;
+
+  const cleanValues = values
+    .map(Number)
+    .filter(v => Number.isFinite(v));
+
+  if (cleanValues.length < 2) {
+    svg.innerHTML = "";
+    return;
+  }
+
+  const width = 120;
+  const height = 34;
+  const min = Math.min(...cleanValues);
+  const max = Math.max(...cleanValues);
+  const range = max - min || 1;
+
+  const points = cleanValues.map((value, index) => {
+    const x = (index / (cleanValues.length - 1)) * width;
+    const y = height - ((value - min) / range) * (height - 6) - 3;
+    return `${x.toFixed(1)},${y.toFixed(1)}`;
+  });
+
+  const colorClass =
+    type === "good" ? "discipline-good" :
+    type === "bad" ? "discipline-bad" :
+    "discipline-mid";
+
+  svg.className.baseVal = `sparkline ${colorClass}`;
+  svg.innerHTML = `<path d="M ${points.join(" L ")}"></path>`;
+}
   
 function renderAll(){
   currentAccount = accountsCache.find(x => x.id === currentAccountId) || null;
@@ -3002,6 +3035,39 @@ $("netPnlPercent").className =
 
 $("balancePercent").className =
   `metric-change ${balancePercent >= 0 ? "up" : "down"}`;
+  const orderedTradesForSparkline = [...trades].reverse();
+
+let runningEquity = startingBalance;
+const equitySparkValues = [startingBalance];
+
+orderedTradesForSparkline.forEach(t => {
+  runningEquity += pnl(t);
+  equitySparkValues.push(runningEquity);
+});
+
+const pnlSparkValues = equitySparkValues.map(v => v - startingBalance);
+
+const disciplineSparkValues = orderedTradesForSparkline
+  .map(t => Number(t.disciplineScore))
+  .filter(v => Number.isFinite(v));
+
+renderSparkline(
+  "netPnlSparkline",
+  pnlSparkValues,
+  netPnl >= 0 ? "good" : "bad"
+);
+
+renderSparkline(
+  "balanceSparkline",
+  equitySparkValues,
+  currentBalance >= startingBalance ? "good" : "bad"
+);
+
+renderSparkline(
+  "disciplineSparkline",
+  disciplineSparkValues,
+  dailyDiscipline >= 8 ? "good" : dailyDiscipline >= 5 ? "neutral" : "bad"
+);
   
 setMoneyColor(
   "currentBalance",
