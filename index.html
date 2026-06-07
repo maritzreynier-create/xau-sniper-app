@@ -2661,6 +2661,44 @@ function resetTradeForm() {
   state.checklist = Object.fromEntries(checklistItems.map(x => [x, false]));
 }
 
+function setMoneyColor(id, value){
+  const el = $(id);
+  if (!el) return;
+
+  el.classList.remove(
+    "discipline-good",
+    "discipline-bad",
+    "discipline-mid"
+  );
+
+  if (Number(value) > 0){
+    el.classList.add("discipline-good");
+  } else if (Number(value) < 0){
+    el.classList.add("discipline-bad");
+  } else {
+    el.classList.add("discipline-mid");
+  }
+}
+
+function setDisciplineColor(id, value){
+  const el = $(id);
+  if (!el) return;
+
+  el.classList.remove(
+    "discipline-good",
+    "discipline-bad",
+    "discipline-mid"
+  );
+
+  if (Number(value) >= 8){
+    el.classList.add("discipline-good");
+  } else if (Number(value) >= 6){
+    el.classList.add("discipline-mid");
+  } else {
+    el.classList.add("discipline-bad");
+  }
+}
+  
 function renderAll(){
   currentAccount = accountsCache.find(x => x.id === currentAccountId) || null;
   renderAccountMeta();
@@ -2700,11 +2738,31 @@ function renderAll(){
   $("dailyDiscipline").textContent = dailyDiscipline.toFixed(1);
   $("avgRRR").textContent = avgRRR.toFixed(2) + "R";
   $("sharpeRatio").textContent = sharpe.toFixed(2);
+  setMoneyColor("netPnl", netPnl);
+
+setMoneyColor(
+  "currentBalance",
+  currentBalance - startingBalance
+);
+
+setDisciplineColor(
+  "dailyDiscipline",
+  dailyDiscipline
+);
 
   $("winRate").textContent = (trades.length ? Math.round((wins.length / trades.length) * 100) : 0) + "%";
   $("profitFactor").textContent = (grossLoss > 0 ? grossProfit / grossLoss : grossProfit > 0 ? grossProfit : 0).toFixed(2);
-  $("avgWin").textContent = money(wins.length ? grossProfit / wins.length : 0);
-  $("avgLoss").textContent = money(losses.length ? grossLoss / losses.length : 0);
+const avgWinValue =
+  wins.length ? grossProfit / wins.length : 0;
+
+const avgLossValue =
+  losses.length ? -(grossLoss / losses.length) : 0;
+
+$("avgWin").textContent = money(avgWinValue);
+$("avgLoss").textContent = money(avgLossValue);
+
+setMoneyColor("avgWin", avgWinValue);
+setMoneyColor("avgLoss", avgLossValue);
   $("confidenceVal").textContent = $("confidence").value;
 
   const bestHour = getBestHour(hist);
