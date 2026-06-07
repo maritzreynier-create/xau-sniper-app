@@ -755,7 +755,8 @@
   opacity:.40;
 }
 
-.sparkline path{
+.sparkline path,
+.sparkline polyline{
   fill:none;
   stroke:currentColor;
   stroke-width:2.2;
@@ -2952,8 +2953,8 @@ if (Number(value) >= 8){
 
   svg.className.baseVal = `sparkline ${colorClass}`;
  svg.innerHTML = `
-  <path
-    d="M ${points.join(" L ")}"
+  <polyline
+    points="${points.join(" ")}"
     fill="none"
     stroke="currentColor"
     stroke-width="2.2"
