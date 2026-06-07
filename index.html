@@ -18,10 +18,12 @@
       --text:#e5e7eb;
       --muted:#94a3b8;
       --border:#1f2937;
-      --green:#22c55e;
-      --green-2:#16a34a;
-      --green-soft:#4ade80;
-      --danger:#ef4444;
+      --green:#00ff66;
+--green-2:#00cc4b;
+--green-soft:#7CFF9B;
+--danger:#ff1f1f;
+--danger-2:#cc0000;
+--danger-soft:#ff6b6b;
       --flat:#334155;
       --glow:rgba(34,197,94,.12);
       --card-glow:rgba(59,130,246,.06);
@@ -91,6 +93,34 @@
       outline:none;
       box-shadow:inset 0 1px 0 rgba(255,255,255,.02);
     }
+    .metric-card{
+  position:relative;
+  overflow:hidden;
+  min-height:118px;
+}
+
+.metric-icon{
+  position:absolute;
+  right:18px;
+  top:18px;
+  font-size:30px;
+  opacity:.25;
+  filter:drop-shadow(0 0 12px rgba(255,255,255,.08));
+}
+
+.metric-change{
+  margin-top:6px;
+  font-size:13px;
+  font-weight:800;
+}
+
+.metric-change.up{
+  color:var(--green);
+}
+
+.metric-change.down{
+  color:var(--danger);
+}
     input:focus,textarea:focus,select:focus{
       border-color:var(--green);
       box-shadow:0 0 0 3px rgba(34,197,94,.15);
@@ -186,9 +216,9 @@
       border-radius:18px;
       padding:12px;
     }
-    .discipline-good{color:#86efac}
-    .discipline-mid{color:#fde68a}
-    .discipline-bad{color:#fca5a5}
+    .discipline-good{color:#00ff66;text-shadow:0 0 14px rgba(0,255,102,.18)}
+.discipline-mid{color:#ffd166;text-shadow:0 0 12px rgba(255,209,102,.14)}
+.discipline-bad{color:#ff2b2b;text-shadow:0 0 14px rgba(255,43,43,.20)}
     .muted{color:var(--muted);font-size:13px}
     .mini{font-size:12px;color:var(--muted)}
     .history-item{
@@ -915,20 +945,28 @@
         <button id="deleteAccountBtn" class="btn danger small" type="button">Delete</button>
       </div>
     </div>
-    </div>  <div class="grid3 metrics-grid-primary">
-    <div class="card">
-      <div class="label">Net P&amp;L</div>
-      <div class="value" id="netPnl">$0.00</div>
-    </div>
-    <div class="card">
-      <div class="label">Current Balance</div>
-      <div class="value" id="currentBalance">$0.00</div>
-    </div>
-    <div class="card">
-      <div class="label">Daily Discipline</div>
-      <div class="value" id="dailyDiscipline">0.0</div>
-      <div class="mini">Execution discipline</div>
-    </div>
+   </div>  <div class="grid3 metrics-grid-primary">
+  <div class="card metric-card">
+    <div class="label">Net P&amp;L</div>
+    <div class="value" id="netPnl">$0.00</div>
+    <div class="metric-change" id="netPnlPercent">▲ 0.00%</div>
+    <div class="metric-icon">📊</div>
+  </div>
+
+  <div class="card metric-card">
+    <div class="label">Current Balance</div>
+    <div class="value" id="currentBalance">$0.00</div>
+    <div class="metric-change" id="balancePercent">▲ 0.00%</div>
+    <div class="metric-icon">💰</div>
+  </div>
+
+  <div class="card metric-card">
+    <div class="label">Daily Discipline</div>
+    <div class="value" id="dailyDiscipline">0.0</div>
+    <div class="mini">Execution discipline</div>
+    <div class="metric-icon">🛡️</div>
+  </div>
+</div>
   </div>  <div class="grid3 metrics-grid-secondary">
     <div class="card"><div class="label">Starting Balance</div><div class="value-small" id="startingBalance">$0.00</div></div>
     <div class="card"><div class="label">Win Rate</div><div class="value-small" id="winRate">0%</div></div>
