@@ -957,6 +957,30 @@
     padding:16px;
   }
 }
+    @media (min-width: 641px){
+  .sparkline{
+    height:14px;
+    margin-top:6px;
+    opacity:.28;
+  }
+
+  .sparkline path,
+  .sparkline polyline{
+    stroke-width:1.4;
+  }
+}
+
+@media (max-width: 640px){
+  .sparkline{
+    height:20px;
+    opacity:.55;
+  }
+
+  .sparkline path,
+  .sparkline polyline{
+    stroke-width:2;
+  }
+}
   </style>
 </head>
 <body>
