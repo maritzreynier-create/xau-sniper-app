@@ -2739,7 +2739,26 @@ function renderAll(){
   $("avgRRR").textContent = avgRRR.toFixed(2) + "R";
   $("sharpeRatio").textContent = sharpe.toFixed(2);
   setMoneyColor("netPnl", netPnl);
+const netPnlPercent = startingBalance
+  ? (netPnl / startingBalance) * 100
+  : 0;
 
+const balancePercent = startingBalance
+  ? ((currentBalance - startingBalance) / startingBalance) * 100
+  : 0;
+
+$("netPnlPercent").textContent =
+  `${netPnlPercent >= 0 ? "▲" : "▼"} ${Math.abs(netPnlPercent).toFixed(2)}%`;
+
+$("balancePercent").textContent =
+  `${balancePercent >= 0 ? "▲" : "▼"} ${Math.abs(balancePercent).toFixed(2)}%`;
+
+$("netPnlPercent").className =
+  `metric-change ${netPnlPercent >= 0 ? "up" : "down"}`;
+
+$("balancePercent").className =
+  `metric-change ${balancePercent >= 0 ? "up" : "down"}`;
+  
 setMoneyColor(
   "currentBalance",
   currentBalance - startingBalance
