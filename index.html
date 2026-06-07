@@ -709,6 +709,46 @@
       letter-spacing:.06em;
       text-transform:uppercase;
     }
+    .hero-coach-status{
+  position:absolute;
+  right:22px;
+  bottom:22px;
+  width:260px;
+  padding:12px 14px;
+  border-radius:18px;
+  border:1px solid rgba(148,163,184,.14);
+  background:rgba(15,23,42,.72);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.04);
+}
+
+.hero-coach-label{
+  font-size:10px;
+  text-transform:uppercase;
+  letter-spacing:.12em;
+  color:var(--muted);
+  margin-bottom:5px;
+}
+
+.hero-coach-main{
+  font-size:18px;
+  font-weight:800;
+}
+
+.hero-coach-sub{
+  font-size:12px;
+  color:var(--muted);
+  margin-top:4px;
+}
+
+@media (max-width: 640px){
+  .hero-coach-status{
+    position:relative;
+    right:auto;
+    bottom:auto;
+    width:100%;
+    margin-top:14px;
+  }
+}
     @keyframes smPulseRing{
       0%, 100% {
         box-shadow:0 0 18px rgba(34,197,94,.10), 0 0 0 rgba(34,197,94,0);
@@ -947,6 +987,11 @@
       <span class="hero-tag">Disciplined</span>
     </div>
   </div>
+  <div class="hero-coach-status" id="heroCoachStatus">
+  <div class="hero-coach-label">Coach Status</div>
+  <div class="hero-coach-main" id="heroCoachMain">Building Data</div>
+  <div class="hero-coach-sub" id="heroCoachSub">Log trades to unlock guidance.</div>
+</div>
 
  <div class="card" style="padding-top:16px">
     <div class="section-title">Account</div>
@@ -2888,6 +2933,28 @@ function renderAll(){
   const startingBalance = Number(currentAccount?.starting_balance || 0);
   const currentBalance = startingBalance + netPnl;
   const dailyDiscipline = calculateDailyDiscipline(hist);
+  const heroCoachMain = $("heroCoachMain");
+const heroCoachSub = $("heroCoachSub");
+
+if (heroCoachMain && heroCoachSub) {
+  if (!trades.length) {
+    heroCoachMain.textContent = "Building Data";
+    heroCoachSub.textContent = "Log trades to unlock guidance.";
+    heroCoachMain.className = "hero-coach-main discipline-mid";
+  } else if (dailyDiscipline >= 8) {
+    heroCoachMain.textContent = "Elite Discipline";
+    heroCoachSub.textContent = `${dailyDiscipline.toFixed(1)}/10 • Stay consistent.`;
+    heroCoachMain.className = "hero-coach-main discipline-good";
+  } else if (dailyDiscipline >= 5) {
+    heroCoachMain.textContent = "Watch Discipline";
+    heroCoachSub.textContent = `${dailyDiscipline.toFixed(1)}/10 • Tighten execution.`;
+    heroCoachMain.className = "hero-coach-main discipline-mid";
+  } else {
+    heroCoachMain.textContent = "Stop & Review";
+    heroCoachSub.textContent = `${dailyDiscipline.toFixed(1)}/10 • Protect capital first.`;
+    heroCoachMain.className = "hero-coach-main discipline-bad";
+  }
+}
   const avgRRR = calculateAverageRRR(hist);
   const sharpe = calculateSharpe(hist);
 
