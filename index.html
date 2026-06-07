@@ -3019,32 +3019,7 @@ function renderAll(){
   const startingBalance = Number(currentAccount?.starting_balance || 0);
   const currentBalance = startingBalance + netPnl;
   const dailyDiscipline = calculateDailyDiscipline(hist);
-  const heroAccountTag = $("heroAccountTag");
-const heroTradesTag = $("heroTradesTag");
-const heroWinRateTag = $("heroWinRateTag");
-const heroDisciplineTag = $("heroDisciplineTag");
 
-if (heroAccountTag && heroTradesTag && heroWinRateTag && heroDisciplineTag) {
-  heroAccountTag.textContent = currentAccount
-    ? `${currentAccount.type} Account`
-    : "No Account";
-
-  heroTradesTag.textContent =
-    `${trades.length} Trade${trades.length === 1 ? "" : "s"}`;
-
-  heroWinRateTag.textContent =
-    `${trades.length ? Math.round((wins.length / trades.length) * 100) : 0}% Win Rate`;
-
-  heroDisciplineTag.textContent =
-    `${dailyDiscipline.toFixed(1)} Discipline`;
-
-  heroDisciplineTag.className =
-    "hero-tag " +
-    (dailyDiscipline >= 8
-      ? "discipline-good"
-      : dailyDiscipline >= 5
-        ? "discipline-mid"
-        : "discipline-bad");
 }
   const heroCoachMain = $("heroCoachMain");
 const heroCoachSub = $("heroCoachSub");
