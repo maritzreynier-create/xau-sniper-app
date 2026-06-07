@@ -127,17 +127,17 @@
 }
 
 .metric-change{
-  margin-top:6px;
   font-size:13px;
-  font-weight:800;
+  font-weight:700;
+  margin-top:4px;
 }
 
 .metric-change.up{
-  color:var(--green);
+  color:#00ff88;
 }
 
 .metric-change.down{
-  color:var(--danger);
+  color:#ff4d4d;
 }
     input:focus,textarea:focus,select:focus{
       border-color:var(--green);
@@ -957,17 +957,18 @@
     padding:16px;
   }
 }
-    @media (min-width: 641px){
+  @media (min-width: 641px){
   .sparkline{
-    height:14px;
-    margin-top:6px;
-    opacity:.28;
+    height:18px;
+    margin-top:8px;
+    opacity:.55;
   }
 
   .sparkline path,
   .sparkline polyline{
-    stroke-width:1.4;
+    stroke-width:1.8;
   }
+}
 }
 
 @media (max-width: 640px){
@@ -2959,7 +2960,7 @@ if (Number(value) >= 8){
   }
 
   const width = 140;
-  const height = 22;
+  const height = 18;
   const min = Math.min(...cleanValues);
   const max = Math.max(...cleanValues);
   const range = max - min || 1;
