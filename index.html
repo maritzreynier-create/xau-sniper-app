@@ -750,9 +750,9 @@
   }
   .sparkline{
   width:100%;
-  height:34px;
-  margin-top:10px;
-  opacity:.85;
+  height:18px;
+  margin-top:6px;
+  opacity:.40;
 }
 
 .sparkline path{
@@ -2933,8 +2933,8 @@ if (Number(value) >= 8){
     return;
   }
 
-  const width = 120;
-  const height = 34;
+  const width = 140;
+  const height = 22;
   const min = Math.min(...cleanValues);
   const max = Math.max(...cleanValues);
   const range = max - min || 1;
@@ -2951,7 +2951,16 @@ if (Number(value) >= 8){
     "discipline-mid";
 
   svg.className.baseVal = `sparkline ${colorClass}`;
-  svg.innerHTML = `<path d="M ${points.join(" L ")}"></path>`;
+ svg.innerHTML = `
+  <path
+    d="M ${points.join(" L ")}"
+    fill="none"
+    stroke="currentColor"
+    stroke-width="2.2"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+`;
 }
   
 function renderAll(){
