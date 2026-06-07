@@ -748,6 +748,20 @@
     width:100%;
     margin-top:14px;
   }
+  .sparkline{
+  width:100%;
+  height:34px;
+  margin-top:10px;
+  opacity:.85;
+}
+
+.sparkline path{
+  fill:none;
+  stroke:currentColor;
+  stroke-width:2.2;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+}
 }
     @keyframes smPulseRing{
       0%, 100% {
@@ -1016,6 +1030,7 @@
     <div class="label">Net P&amp;L</div>
     <div class="value" id="netPnl">$0.00</div>
     <div class="metric-change" id="netPnlPercent">▲ 0.00%</div>
+    <svg class="sparkline" id="netPnlSparkline" viewBox="0 0 120 34"></svg>
     <div class="metric-icon">
       <svg viewBox="0 0 24 24">
         <path d="M3 3v18h18"></path>
@@ -1028,6 +1043,7 @@
     <div class="label">Current Balance</div>
     <div class="value" id="currentBalance">$0.00</div>
     <div class="metric-change" id="balancePercent">▲ 0.00%</div>
+    <svg class="sparkline" id="balanceSparkline" viewBox="0 0 120 34"></svg>
     <div class="metric-icon">
       <svg viewBox="0 0 24 24">
         <path d="M3 7h18v10H3z"></path>
@@ -1041,6 +1057,7 @@
     <div class="label">Daily Discipline</div>
     <div class="value" id="dailyDiscipline">0.0</div>
     <div class="mini">Execution discipline</div>
+    <svg class="sparkline" id="disciplineSparkline" viewBox="0 0 120 34"></svg>
     <div class="metric-icon">
       <svg viewBox="0 0 24 24">
         <path d="M12 3l7 3v5c0 5-3 8-7 10-4-2-7-5-7-10V6z"></path>
@@ -2895,13 +2912,13 @@ function setDisciplineColor(id, value){
     "discipline-mid"
   );
 
-  if (Number(value) >= 8){
-    el.classList.add("discipline-good");
-  } else if (Number(value) >= 6){
-    el.classList.add("discipline-mid");
-  } else {
-    el.classList.add("discipline-bad");
-  }
+if (Number(value) >= 8){
+  el.classList.add("discipline-good");
+} else if (Number(value) >= 5){
+  el.classList.add("discipline-mid");
+} else {
+  el.classList.add("discipline-bad");
+}
 }
   
 function renderAll(){
